@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
+import { useState, useMemo, useCallback, Fragment } from "react";
 import { useAuth } from "../auth/AuthContext";
+import { useData } from "../context/DataContext";
 import {
   Users, Plus, Search, X, Edit2, Trash2,
   Phone, Mail, MapPin, FileText, Clock,
@@ -752,6 +753,7 @@ function CommessaFormModal({ iniziale, onSave, onCancel }) {
 
 function SchedaCliente({ cliente, rapportini, tecnici, onEdit, onDelete, onBack, onEliminaRapportino }) {
   const { hasPermission } = useAuth();
+  const { commesse: allCommesse, addCommessa: ctxAdd, updateCommessa: ctxUpdate, deleteCommessa: ctxDelete } = useData();
   const canManage = hasPermission('clienti.gestisci');
   const [rapportinoAperto,   setRapportinoAperto]   = useState(null);
   const [formCommessa,       setFormCommessa]       = useState(null);
@@ -760,25 +762,17 @@ function SchedaCliente({ cliente, rapportini, tecnici, onEdit, onDelete, onBack,
   const [commessaToDelete,   setCommessaToDelete]   = useState(null);
   const [rapportinoToDelete, setRapportinoToDelete] = useState(null);
 
-  const [commesse, setCommesse] = useState(() =>
-    readLS(KEY_COMMESSE, []).filter(c => c.clienteId === cliente.id)
-  );
-
-  const saveCommesse = (nuove) => {
-    setCommesse(nuove);
-    const all = readLS(KEY_COMMESSE, []);
-    writeLS(KEY_COMMESSE, [...all.filter(c => c.clienteId !== cliente.id), ...nuove]);
-  };
+  const commesse = allCommesse.filter(c => c.clienteId === cliente.id);
 
   const addCommessa = ({ nome, descrizione }) => {
     const id = `cm${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
-    saveCommesse([...commesse, { id, clienteId: cliente.id, nome, descrizione, createdAt: new Date().toISOString(), rapportiniIds: [] }]);
+    ctxAdd({ id, clienteId: cliente.id, nome, descrizione, createdAt: new Date().toISOString(), rapportiniIds: [] });
     setFormCommessa(null);
     setCommessaAperta(id);
   };
 
   const editCommessa = (id, patch) => {
-    saveCommesse(commesse.map(c => c.id === id ? { ...c, ...patch } : c));
+    ctxUpdate(id, patch);
     setFormCommessa(null);
   };
 
@@ -789,7 +783,7 @@ function SchedaCliente({ cliente, rapportini, tecnici, onEdit, onDelete, onBack,
 
   const confirmDeleteCommessa = () => {
     if (!commessaToDelete) return;
-    saveCommesse(commesse.filter(c => c.id !== commessaToDelete.id));
+    ctxDelete(commessaToDelete.id);
     if (commessaAperta === commessaToDelete.id) setCommessaAperta(null);
     setCommessaToDelete(null);
   };
@@ -797,27 +791,25 @@ function SchedaCliente({ cliente, rapportini, tecnici, onEdit, onDelete, onBack,
   const confirmDeleteRapportino = () => {
     if (!rapportinoToDelete) return;
     const id = rapportinoToDelete.id;
-    // Rimuovi il rapportino dalle commesse locali
-    saveCommesse(commesse.map(c => ({
-      ...c,
-      rapportiniIds: (c.rapportiniIds || []).filter(rid => rid !== id),
-    })));
+    commesse.forEach(c => {
+      if ((c.rapportiniIds || []).includes(id)) {
+        ctxUpdate(c.id, { rapportiniIds: c.rapportiniIds.filter(rid => rid !== id) });
+      }
+    });
     if (rapportinoAperto?.id === id) setRapportinoAperto(null);
     setRapportinoToDelete(null);
     onEliminaRapportino(rapportinoToDelete);
   };
 
   const assignRapportino = (commessaId, rapportinoId) => {
-    saveCommesse(commesse.map(c =>
-      c.id === commessaId ? { ...c, rapportiniIds: [...(c.rapportiniIds || []), rapportinoId] } : c
-    ));
+    const c = commesse.find(x => x.id === commessaId);
+    if (c) ctxUpdate(commessaId, { rapportiniIds: [...(c.rapportiniIds || []), rapportinoId] });
     setPickerCommessaId(null);
   };
 
   const removeFromCommessa = (commessaId, rapportinoId) => {
-    saveCommesse(commesse.map(c =>
-      c.id === commessaId ? { ...c, rapportiniIds: (c.rapportiniIds || []).filter(id => id !== rapportinoId) } : c
-    ));
+    const c = commesse.find(x => x.id === commessaId);
+    if (c) ctxUpdate(commessaId, { rapportiniIds: (c.rapportiniIds || []).filter(id => id !== rapportinoId) });
   };
 
   const rList = useMemo(() =>
@@ -1457,9 +1449,7 @@ function ClienteCard({ cliente, nInterventi, onView, onEdit, onDelete }) {
 
 export default function Clienti() {
   const { hasPermission } = useAuth();
-  const [clienti,    setClienti]    = useState([]);
-  const [rapportini, setRapportini] = useState([]);
-  const [tecnici,    setTecnici]    = useState([]);
+  const { clienti, rapportini, tecnici, addCliente, updateCliente, deleteCliente } = useData();
   const [search,     setSearch]     = useState("");
   const [filterTipo, setFilterTipo] = useState("Tutti");
   const [showFilters,setShowFilters]= useState(false);
@@ -1468,19 +1458,6 @@ export default function Clienti() {
   const [view,           setView]           = useState("lista");
   const [clienteSelezionato, setClienteSelezionato] = useState(null);
   const [clienteDelete,      setClienteDelete]      = useState(null);
-
-  // Carica dati
-  useEffect(() => {
-    setClienti(initClienti());
-    setRapportini(readLS(KEY_RAPPORTINI, []));
-    setTecnici(readLS(KEY_TECNICI, []));
-  }, []);
-
-  // Persistenza
-  const saveClienti = useCallback((data) => {
-    setClienti(data);
-    writeLS(KEY_CLIENTI, data);
-  }, []);
 
   // Filtraggio + ricerca
   const clientiFiltrati = useMemo(() => {
@@ -1507,36 +1484,27 @@ export default function Clienti() {
   }, [rapportini]);
 
   // CRUD
-  const handleSalva = (form) => {
+  const handleSalva = async (form) => {
     if (view === "form-nuovo") {
-      const nuovo = {
-        ...form,
-        id: `c${Date.now()}`,
-        createdAt: new Date().toISOString(),
-      };
-      saveClienti([...clienti, nuovo]);
+      await addCliente(form);
       setView("lista");
     } else if (view === "form-modifica") {
-      const aggiornati = clienti.map(c =>
-        c.id === clienteSelezionato.id ? { ...c, ...form } : c
-      );
-      saveClienti(aggiornati);
+      await updateCliente(clienteSelezionato.id, form);
       setClienteSelezionato(prev => ({ ...prev, ...form }));
       setView("scheda");
     }
   };
 
-  const handleElimina = () => {
-    saveClienti(clienti.filter(c => c.id !== clienteDelete.id));
+  const handleElimina = async () => {
+    await deleteCliente(clienteDelete.id);
     setClienteDelete(null);
     if (view === "scheda") setView("lista");
   };
 
-  const handleEliminaRapportino = (rap) => {
-    ripristinaMagazzinoPerRapportino(rap);
-    const nuovi = rapportini.filter(r => r.id !== rap.id);
-    setRapportini(nuovi);
-    writeLS(KEY_RAPPORTINI, nuovi);
+  const { deleteRapportino, ripristinaMagazzino } = useData();
+  const handleEliminaRapportino = async (rap) => {
+    if (rap?.materiali?.length > 0) await ripristinaMagazzino(rap.materiali);
+    await deleteRapportino(rap.id);
   };
 
   // KPI sommario

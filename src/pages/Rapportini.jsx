@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useRapportini } from '../hooks/useRapportini';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useData } from '../context/DataContext';
 import { Search, Trash2, Edit2, Check, Calendar, User, MapPin, Wrench, AlertTriangle, X } from 'lucide-react';
 
 function DeleteModal({ rapportino, onConfirm, onCancel }) {
@@ -52,9 +52,15 @@ function DeleteModal({ rapportino, onConfirm, onCancel }) {
 }
 
 export default function Rapportini() {
-  const { rapportini, eliminaConRipristino } = useRapportini();
+  const { rapportini, deleteRapportino, ripristinaMagazzino } = useData();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+
+  const eliminaConRipristino = async (id) => {
+    const rap = rapportini.find(r => r.id === id);
+    if (rap?.materiali?.length > 0) await ripristinaMagazzino(rap.materiali);
+    await deleteRapportino(id);
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStato, setFilterStato] = useState('');
   const [toDelete, setToDelete] = useState(null);

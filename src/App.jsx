@@ -15,6 +15,7 @@ import Backup from './pages/Backup'
 import Impostazioni from './pages/Impostazioni'
 import Login from './pages/Login'
 import { AuthProvider, useAuth } from './auth/AuthContext'
+import { DataProvider } from './context/DataContext'
 
 // ─── Theme Context ────────────────────────────────────────────────────────────
 
@@ -115,9 +116,9 @@ function AppShell({ children }) {
 
 function AuthGate({ children }) {
   const { user, ready } = useAuth();
-  if (!ready) return null; // attendi inizializzazione accounts
+  if (!ready) return null;
   if (!user) return <Login />;
-  return children;
+  return <DataProvider>{children}</DataProvider>;
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────

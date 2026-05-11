@@ -5,6 +5,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../App";
+import { useData } from "../context/DataContext";
 import {
   Wrench,
   Clock,
@@ -339,9 +340,7 @@ function TecniciOggi({ rapportiniOggi }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("tutti");
-  const rapportini = useMemo(() => loadRapportini(), []);
-  const clienti    = useMemo(() => loadClienti(), []);
-  const tecnici    = useMemo(() => loadTecnici(), []);
+  const { rapportini, clienti, tecnici } = useData();
 
   const oggi = new Date().toISOString().split("T")[0];
   const settimanaStart = new Date();
@@ -380,7 +379,7 @@ export default function Dashboard() {
       default:           base = rapportini;
     }
     return [...base]
-      .sort((a, b) => b.data.localeCompare(a.data) || (b.oraInizio || "").localeCompare(a.oraInizio || ""))
+      .sort((a, b) => (b.data || "").localeCompare(a.data || "") || (b.oraInizio || "").localeCompare(a.oraInizio || ""))
       .map(arricchisci);
   }, [filter, rapportini, rapportiniOggi, rapportiniSettimana, clienti, tecnici]);
 

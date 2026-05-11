@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 
 // ─── Costanti ─────────────────────────────────────────────────────────────────
 
@@ -81,35 +82,48 @@ export function AuthProvider({ children }) {
   const [accounts, setAcc]    = useState([]);
   const [ready, setReady]     = useState(false);
 
-  // Inizializza accounts (crea admin di default se prima esecuzione)
+  // Inizializza accounts da Supabase (con fallback localStorage)
   useEffect(() => {
-    const existing = readAccounts();
-    if (existing && existing.length > 0) {
-      setAcc(existing);
-      setReady(true);
-    } else {
-      hashPassword('admin').then(hash => {
-        const seed = [{
-          id: 'account_superadmin',
-          username: 'admin',
-          passwordHash: hash,
-          role: 'superadmin',
-          nome: 'Amministratore',
-          email: '',
-          active: true,
-          createdAt: new Date().toISOString(),
-          permissions: ALL_PERMS,
-        }];
-        saveAccounts(seed);
-        setAcc(seed);
+    supabase.from('accounts').select('*').then(async ({ data, error }) => {
+      if (!error && data && data.length > 0) {
+        saveAccounts(data);
+        setAcc(data);
         setReady(true);
-      });
-    }
+        return;
+      }
+      // Supabase vuoto o errore: prova localStorage
+      const local = readAccounts();
+      if (local && local.length > 0) {
+        setAcc(local);
+        setReady(true);
+        // Migra su Supabase in background
+        supabase.from('accounts').upsert(local, { onConflict: 'id' });
+        return;
+      }
+      // Prima esecuzione assoluta: crea admin default
+      const hash = await hashPassword('admin');
+      const seed = [{
+        id: 'account_superadmin',
+        username: 'admin',
+        passwordHash: hash,
+        role: 'superadmin',
+        nome: 'Amministratore',
+        email: '',
+        active: true,
+        createdAt: new Date().toISOString(),
+        permissions: ALL_PERMS,
+      }];
+      saveAccounts(seed);
+      supabase.from('accounts').upsert(seed, { onConflict: 'id' });
+      setAcc(seed);
+      setReady(true);
+    });
   }, []);
 
   const persistAccounts = (list) => {
     saveAccounts(list);
     setAcc(list);
+    supabase.from('accounts').upsert(list, { onConflict: 'id' });
   };
 
   // ── Login ──────────────────────────────────────────────────────────────────

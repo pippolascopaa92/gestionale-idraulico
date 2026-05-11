@@ -1,6 +1,7 @@
 import { useLocalStorage } from './useLocalStorage';
 import { rapportiniIniziali } from '../data/mockData';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '../lib/supabase';
 
 export function useRapportini() {
   const [rapportini, setRapportini] = useLocalStorage(
@@ -8,23 +9,41 @@ export function useRapportini() {
     rapportiniIniziali
   );
 
-  const aggiungi = (dati) => {
+  const aggiungi = async (dati) => {
     const nuovo = { ...dati, id: uuidv4() };
     setRapportini((prev) => [nuovo, ...prev]);
+    try {
+      const { error } = await supabase.from('rapportini').insert(nuovo);
+      if (error) console.warn('Sync Supabase fallita:', error.message);
+    } catch (err) {
+      console.warn('Sync Supabase fallita:', err);
+    }
     return nuovo;
   };
 
-  const aggiorna = (id, dati) => {
+  const aggiorna = async (id, dati) => {
     setRapportini((prev) =>
       prev.map((r) => (r.id === id ? { ...r, ...dati } : r))
     );
+    try {
+      const { error } = await supabase.from('rapportini').update(dati).eq('id', id);
+      if (error) console.warn('Sync Supabase fallita:', error.message);
+    } catch (err) {
+      console.warn('Sync Supabase fallita:', err);
+    }
   };
 
-  const elimina = (id) => {
+  const elimina = async (id) => {
     setRapportini((prev) => prev.filter((r) => r.id !== id));
+    try {
+      const { error } = await supabase.from('rapportini').delete().eq('id', id);
+      if (error) console.warn('Sync Supabase fallita:', error.message);
+    } catch (err) {
+      console.warn('Sync Supabase fallita:', err);
+    }
   };
 
-  const eliminaConRipristino = (id) => {
+  const eliminaConRipristino = async (id) => {
     const rap = rapportini.find((r) => r.id === id);
     if (rap?.materiali?.length > 0) {
       try {
@@ -39,6 +58,12 @@ export function useRapportini() {
       } catch {}
     }
     setRapportini((prev) => prev.filter((r) => r.id !== id));
+    try {
+      const { error } = await supabase.from('rapportini').delete().eq('id', id);
+      if (error) console.warn('Sync Supabase fallita:', error.message);
+    } catch (err) {
+      console.warn('Sync Supabase fallita:', err);
+    }
   };
 
   const getById = (id) => rapportini.find((r) => r.id === id);

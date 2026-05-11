@@ -1,12 +1,7 @@
 import { useState, useMemo } from "react";
 import { FileBarChart2, FileText, Download, Search, X, Filter, TrendingUp, Clock, Euro, Wrench, Users } from "lucide-react";
 import { generateRapportinoP } from "../utils/generatePDF";
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
-function readLS(key, fb) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fb; } catch { return fb; }
-}
+import { useData } from "../context/DataContext";
 
 function fmtData(iso) {
   if (!iso) return "—";
@@ -62,9 +57,7 @@ export default function Report() {
   const [search,    setSearch]    = useState("");
   const [loadingId, setLoadingId] = useState(null);
 
-  const rapportini = readLS("rapportini", []);
-  const clienti    = readLS("hydrodesk_clienti", []);
-  const tecnici    = readLS("tecnici", []);
+  const { rapportini, clienti, tecnici } = useData();
 
   const nomeCliente = (r) => {
     const c = clienti.find(cl => cl.id === r.clienteId);

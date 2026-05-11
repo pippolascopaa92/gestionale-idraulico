@@ -1,12 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Wrench, AlertTriangle, Clock, CheckCircle2, CalendarDays, User, ChevronRight, RefreshCw } from "lucide-react";
-
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
-function readLS(key, fb) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fb; } catch { return fb; }
-}
+import { useData } from "../context/DataContext";
 
 function fmtData(iso) {
   if (!iso) return "—";
@@ -40,9 +35,7 @@ const TIPI_LABEL = {
 
 export default function Manutenzioni() {
   const navigate    = useNavigate();
-  const rapportini  = readLS("rapportini", []);
-  const clienti     = readLS("hydrodesk_clienti", []);
-  const tecnici     = readLS("tecnici", []);
+  const { rapportini, clienti, tecnici } = useData();
 
   const items = useMemo(() => {
     return rapportini

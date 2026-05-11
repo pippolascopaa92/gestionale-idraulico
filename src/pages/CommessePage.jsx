@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom"
 import {
   Folder, Search, X, Users, Wrench, ChevronRight, Plus
 } from "lucide-react"
-
-function readLS(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback } catch { return fallback }
-}
+import { useData } from "../context/DataContext"
 
 function formatData(iso) {
   if (!iso) return "—"
@@ -17,9 +14,7 @@ export default function CommessePage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState("")
 
-  const commesse   = useMemo(() => readLS("hydrodesk_commesse", []), [])
-  const clienti    = useMemo(() => readLS("hydrodesk_clienti", []), [])
-  const rapportini = useMemo(() => readLS("rapportini", []), [])
+  const { commesse, clienti, rapportini } = useData()
 
   const arricchite = useMemo(() =>
     commesse.map(c => {

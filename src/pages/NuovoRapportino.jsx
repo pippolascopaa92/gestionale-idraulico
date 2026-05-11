@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useData } from "../context/DataContext";
 import {
   User, MapPin, Calendar, Clock, Wrench, FileText,
   Package, AlertTriangle, Camera, PenLine, Save, Phone, Mail, Hash,
@@ -215,7 +216,7 @@ function ClienteInfoRow({ icon: Icon, label, value }) {
 // ─── picker magazzino ─────────────────────────────────────────────────────────
 function MagazzinoPicker({ onSelect, onClose }) {
   const [search, setSearch] = useState("");
-  const prodotti = getMagazzino();
+  const { magazzino: prodotti } = useData();
 
   const filtrati = prodotti.filter((p) =>
     p.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -449,13 +450,16 @@ export default function NuovoRapportino() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const dataFromUrl = searchParams.get("data")?.slice(0, 10) || "";
+  const { clienti, tecnici: tecniciDB, magazzino, commesse, upsertRapportino, updateCommessa, scalaMagazzino, ripristinaMagazzino } = useData();
 
-  const existing = id ? getRapportino(id) : null;
+  const rapportiniLS = () => { try { return JSON.parse(localStorage.getItem('rapportini') || '[]'); } catch { return []; } };
+  const existing = id ? (rapportiniLS().find(r => r.id === id) || null) : null;
+
   const [form, setForm] = useState(() => {
     const base = existing || emptyRapportino();
     if (!existing && dataFromUrl) return { ...base, data: dataFromUrl };
     if (existing && !base.commessaId) {
-      const commessa = findCommessaByRapportino(existing.id);
+      const commessa = commesse.find(c => (c.rapportiniIds || []).includes(existing.id));
       return { ...base, commessaId: commessa?.id || "" };
     }
     return base;
@@ -465,8 +469,7 @@ export default function NuovoRapportino() {
   const [errors, setErrors] = useState({});
   const [showPicker, setShowPicker] = useState(false);
 
-  const clienti = getClienti();
-  const tecnici = [...MOCK_TECNICI, ...getTecnici()];
+  const tecnici = [...MOCK_TECNICI, ...tecniciDB];
 
   // helper set field
   const set = (field, value) => {
@@ -533,19 +536,27 @@ export default function NuovoRapportino() {
     return Object.keys(e).length === 0;
   }
 
-  const handleSave = (stato) => {
+  const handleSave = async (stato) => {
     if (!validate()) return;
     const record = { ...form, stato, updatedAt: new Date().toISOString() };
     if (!form.magazzinoScalato && stato !== 'bozza') {
-      scalaMagazzino(form.materiali);
+      await scalaMagazzino(form.materiali);
       record.magazzinoScalato = true;
       setForm(f => ({ ...f, magazzinoScalato: true }));
     }
     saveRapportino(record);
-    const prevCommessaId = findCommessaByRapportino(form.id)?.id || "";
-    if (form.commessaId || prevCommessaId) {
-      assignToCommessa(form.commessaId, form.id, prevCommessaId);
+    // Gestisci assegnazione commessa
+    const prevCommessa = commesse.find(c => (c.rapportiniIds || []).includes(form.id));
+    const prevCommessaId = prevCommessa?.id || "";
+    if (form.commessaId !== prevCommessaId) {
+      if (prevCommessaId && prevCommessa)
+        await updateCommessa(prevCommessaId, { rapportiniIds: (prevCommessa.rapportiniIds || []).filter(i => i !== form.id) });
+      if (form.commessaId) {
+        const nuova = commesse.find(c => c.id === form.commessaId);
+        if (nuova) await updateCommessa(form.commessaId, { rapportiniIds: [...(nuova.rapportiniIds || []), form.id] });
+      }
     }
+    await upsertRapportino(record);
     setSaved(true);
     setGcalPopup(record);
   };
@@ -568,7 +579,7 @@ export default function NuovoRapportino() {
 
   const clienteSelezionato = clienti.find((c) => c.id === form.clienteId);
   const commesseCliente = form.clienteId
-    ? getCommesse().filter(c => c.clienteId === form.clienteId)
+    ? commesse.filter(c => c.clienteId === form.clienteId)
     : [];
   const totMateriali = form.materiali.reduce((s, m) => s + (parseFloat(m.quantita) || 0) * (parseFloat(m.prezzoVendita) || 0), 0);
   const totManodopera = (parseFloat(form.oreManodopera) || 0) * (parseFloat(form.costoOrario) || 0);

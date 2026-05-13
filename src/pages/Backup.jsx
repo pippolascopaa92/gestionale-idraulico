@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import JSZip from "jszip";
-import { HardDriveDownload, CheckCircle2, AlertCircle, Folder, FileText, Image, Package } from "lucide-react";
+import { HardDriveDownload, CheckCircle2, AlertCircle, Folder, FileText, Image, Package, Upload, RotateCcw } from "lucide-react";
 import { generateRapportinoP } from "../utils/generatePDF";
+import { supabase } from "../lib/supabase";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,65 @@ export default function Backup() {
   const [progress, setProgress] = useState({ step: "", current: 0, total: 0 });
   const [log,      setLog]      = useState([]);
 
+  const [restoreStato, setRestoreStato] = useState("idle"); // idle | running | done | error
+  const [restoreLog,   setRestoreLog]   = useState([]);
+  const fileInputRef = useRef(null);
+
   const addLog = (msg) => setLog(prev => [...prev, msg]);
+  const addRestoreLog = (msg) => setRestoreLog(prev => [...prev, msg]);
+
+  const handleRestoreFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    setRestoreStato("running");
+    setRestoreLog([]);
+
+    try {
+      const zip = await JSZip.loadAsync(file);
+      addRestoreLog(`📦 ZIP aperto: ${file.name}`);
+
+      // Cerca i file JSON nella cartella _dati_grezzi
+      const datasets = [
+        { key: "clienti",    table: "clienti"    },
+        { key: "rapportini", table: "rapportini" },
+        { key: "commesse",   table: "commesse"   },
+        { key: "tecnici",    table: "tecnici"    },
+      ];
+
+      let trovati = 0;
+      for (const { key, table } of datasets) {
+        // Cerca il file in qualsiasi sottocartella
+        const entry = Object.entries(zip.files).find(
+          ([path]) => path.includes("_dati_grezzi/") && path.endsWith(`${key}.json`)
+        );
+        if (!entry) {
+          addRestoreLog(`⚠ ${key}.json non trovato nel backup`);
+          continue;
+        }
+        const json = await entry[1].async("string");
+        const data = JSON.parse(json);
+        if (!data.length) {
+          addRestoreLog(`— ${key}: nessun record`);
+          continue;
+        }
+        const { error } = await supabase.from(table).upsert(data, { onConflict: "id" });
+        if (error) {
+          addRestoreLog(`✗ ${key}: ${error.message}`);
+        } else {
+          addRestoreLog(`✓ ${key}: ${data.length} record ripristinati`);
+          trovati++;
+        }
+      }
+
+      addRestoreLog(`\nRipristino completato. Ricarica la pagina per vedere i dati aggiornati.`);
+      setRestoreStato("done");
+    } catch (err) {
+      addRestoreLog(`✗ Errore: ${err.message}`);
+      setRestoreStato("error");
+    }
+  };
 
   const genera = async () => {
     setStato("running");
@@ -238,7 +297,7 @@ export default function Backup() {
         </div>
       )}
 
-      {/* Log */}
+      {/* Log esportazione */}
       {log.length > 0 && (
         <div className="bg-black/30 rounded-xl p-4 max-h-48 overflow-y-auto">
           <p className="text-xs text-slate-500 mb-2 font-mono uppercase tracking-wider">Log</p>
@@ -249,6 +308,79 @@ export default function Backup() {
           ))}
         </div>
       )}
+
+      {/* ── Sezione Carica Backup ── */}
+      <div className="border-t border-slate-200 dark:border-white/10 pt-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+            <Upload className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Carica Backup</h2>
+            <p className="text-xs text-slate-500">Ripristina i dati da un file ZIP esportato in precedenza</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#0c1a35] border border-slate-100 dark:border-white/5 rounded-2xl p-5 space-y-3">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Seleziona un file <span className="font-mono text-amber-400">BACKUP_HYDRODESK_*.zip</span> precedentemente scaricato.
+            I dati esistenti verranno aggiornati (upsert) — nulla viene cancellato.
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            onChange={handleRestoreFile}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={restoreStato === "running"}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl
+              border-2 border-dashed border-blue-500/40 hover:border-blue-400
+              text-blue-400 hover:text-blue-300 font-semibold text-sm
+              transition-all hover:bg-blue-500/5
+              disabled:opacity-40 disabled:cursor-not-allowed">
+            {restoreStato === "running"
+              ? <><div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Ripristino in corso...</>
+              : <><Upload className="w-4 h-4" /> Seleziona file ZIP</>
+            }
+          </button>
+        </div>
+
+        {/* Esito ripristino */}
+        {restoreStato === "done" && (
+          <div className="flex items-start gap-3 px-5 py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-emerald-300 font-medium">Ripristino completato</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+                <RotateCcw size={12} /> Ricarica la pagina per vedere i dati aggiornati
+              </button>
+            </div>
+          </div>
+        )}
+        {restoreStato === "error" && (
+          <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+            <p className="text-sm text-red-300 font-medium">Errore durante il ripristino</p>
+          </div>
+        )}
+
+        {/* Log ripristino */}
+        {restoreLog.length > 0 && (
+          <div className="bg-black/30 rounded-xl p-4 max-h-48 overflow-y-auto">
+            <p className="text-xs text-slate-500 mb-2 font-mono uppercase tracking-wider">Log ripristino</p>
+            {restoreLog.map((l, i) => (
+              <p key={i} className={`text-xs font-mono ${l.startsWith("✗") ? "text-red-400" : l.startsWith("✓") ? "text-emerald-400" : l.startsWith("⚠") ? "text-amber-400" : "text-slate-400"}`}>
+                {l}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

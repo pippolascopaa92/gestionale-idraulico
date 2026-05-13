@@ -402,23 +402,24 @@ export default function Dashboard() {
       `}</style>
 
       {/* ── Header ── */}
-      <div className="anim-1 flex items-start justify-between mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+      <div className="anim-1 flex items-center justify-between gap-3 mb-6">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Buongiorno 👋
           </h1>
-          <p className="text-slate-400 text-sm mt-1 capitalize">
+          <p className="text-slate-400 text-xs md:text-sm mt-1 capitalize truncate">
             {new Date().toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
 
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
+          className="shrink-0 flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
           style={{ background: "#f59e0b", color: "#0a0f1e" }}
           onClick={() => navigate("/rapportino/nuovo")}
         >
           <Wrench size={14} />
-          Nuovo intervento
+          <span className="hidden sm:inline">Nuovo intervento</span>
+          <span className="sm:hidden">Nuovo</span>
         </button>
       </div>
 

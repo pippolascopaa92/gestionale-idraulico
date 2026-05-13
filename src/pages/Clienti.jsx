@@ -280,87 +280,94 @@ function ClienteForm({ iniziale, onSave, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white dark:bg-[#0c1a35] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl mb-4">
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-y-auto"
+      onClick={onCancel}
+    >
+      <div
+        className="min-h-full flex items-start justify-center p-4 py-8"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="relative bg-white dark:bg-[#0c1a35] border border-slate-200 dark:border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
 
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <User className="w-4 h-4 text-amber-400" />
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-amber-400" />
+              </div>
+              <h2 className="font-semibold text-slate-900 dark:text-white">
+                {iniziale ? "Modifica cliente" : "Nuovo cliente"}
+              </h2>
             </div>
-            <h2 className="font-semibold text-slate-900 dark:text-white">
-              {iniziale ? "Modifica cliente" : "Nuovo cliente"}
-            </h2>
+            <button onClick={onCancel} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={onCancel} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Body */}
-        <div className="p-6 space-y-5">
+          {/* Body */}
+          <div className="p-5 space-y-5">
 
-          {/* Tipo */}
-          <div>
-            <label className="block text-xs text-slate-400 mb-2">Tipo cliente</label>
-            <div className="flex gap-2 flex-wrap">
-              {TIPI.map(t => (
-                <button key={t} onClick={() => set("tipo", t)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border transition-all
-                    ${form.tipo === t
-                      ? "bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
-                      : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 hover:border-white/20"}`}>
-                  {t}
-                </button>
-              ))}
+            {/* Tipo */}
+            <div>
+              <label className="block text-xs text-slate-400 mb-2">Tipo cliente</label>
+              <div className="flex gap-2 flex-wrap">
+                {TIPI.map(t => (
+                  <button key={t} onClick={() => set("tipo", t)}
+                    className={`px-3 py-1.5 rounded-lg text-sm border transition-all
+                      ${form.tipo === t
+                        ? "bg-amber-500/20 border-amber-500/40 text-amber-300 font-medium"
+                        : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-400 hover:border-white/20"}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Griglia campi — 1 col su mobile, 2 su sm+ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Nome / Ragione sociale *" campo="nome" placeholder="Es. Mario Rossi" form={form} set={set} errors={errors} />
+              <Field label="Telefono" campo="telefono" placeholder="333 123 4567" half mono form={form} set={set} errors={errors} />
+              <Field label="Email" campo="email" placeholder="email@esempio.it" half form={form} set={set} errors={errors} />
+              <Field label="Indirizzo" campo="indirizzo" placeholder="Via Roma 12" form={form} set={set} errors={errors} />
+              <Field label="Città *" campo="citta" placeholder="Bergamo" half form={form} set={set} errors={errors} />
+              <Field label="CAP" campo="cap" placeholder="24121" half mono form={form} set={set} errors={errors} />
+              <Field label="Provincia" campo="provincia" placeholder="BG" half form={form} set={set} errors={errors} />
+            </div>
+
+            {/* Sezione fiscale */}
+            <div className="border-t border-slate-100 dark:border-white/5 pt-4">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Dati fiscali</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Codice Fiscale" campo="codiceFiscale" placeholder="RSSMRA80A01A794F" half mono form={form} set={set} errors={errors} />
+                <Field label="Partita IVA" campo="partitaIva" placeholder="02345678901" half mono form={form} set={set} errors={errors} />
+              </div>
+            </div>
+
+            {/* Note */}
+            <div className="border-t border-slate-100 dark:border-white/5 pt-4">
+              <label className="block text-xs text-slate-400 mb-1">Note</label>
+              <textarea
+                rows={3}
+                value={form.note}
+                onChange={e => set("note", e.target.value)}
+                placeholder="Informazioni aggiuntive, preferenze, avvertenze..."
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 outline-none focus:border-amber-500/50 transition-colors resize-none"
+              />
             </div>
           </div>
 
-          {/* Griglia campi */}
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Nome / Ragione sociale *" campo="nome" placeholder="Es. Mario Rossi" form={form} set={set} errors={errors} />
-            <Field label="Telefono" campo="telefono" placeholder="333 123 4567" half mono form={form} set={set} errors={errors} />
-            <Field label="Email" campo="email" placeholder="email@esempio.it" half form={form} set={set} errors={errors} />
-            <Field label="Indirizzo" campo="indirizzo" placeholder="Via Roma 12" form={form} set={set} errors={errors} />
-            <Field label="Città *" campo="citta" placeholder="Bergamo" half form={form} set={set} errors={errors} />
-            <Field label="CAP" campo="cap" placeholder="24121" half mono form={form} set={set} errors={errors} />
-            <Field label="Provincia" campo="provincia" placeholder="BG" half form={form} set={set} errors={errors} />
+          {/* Footer */}
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 p-5 border-t border-slate-100 dark:border-white/5">
+            <button onClick={onCancel}
+              className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-300 text-sm hover:bg-white/5 transition-colors">
+              Annulla
+            </button>
+            <button onClick={submit}
+              className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#060d1f] text-sm font-semibold transition-colors">
+              {iniziale ? "Salva modifiche" : "Crea cliente"}
+            </button>
           </div>
-
-          {/* Sezione fiscale */}
-          <div className="border-t border-slate-100 dark:border-white/5 pt-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wider mb-3">Dati fiscali</p>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Codice Fiscale" campo="codiceFiscale" placeholder="RSSMRA80A01A794F" half mono form={form} set={set} errors={errors} />
-              <Field label="Partita IVA" campo="partitaIva" placeholder="02345678901" half mono form={form} set={set} errors={errors} />
-            </div>
-          </div>
-
-          {/* Note */}
-          <div className="border-t border-slate-100 dark:border-white/5 pt-4">
-            <label className="block text-xs text-slate-400 mb-1">Note</label>
-            <textarea
-              rows={3}
-              value={form.note}
-              onChange={e => set("note", e.target.value)}
-              placeholder="Informazioni aggiuntive, preferenze, avvertenze..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 outline-none focus:border-amber-500/50 transition-colors resize-none"
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-slate-100 dark:border-white/5">
-          <button onClick={onCancel}
-            className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-300 text-sm hover:bg-white/5 transition-colors">
-            Annulla
-          </button>
-          <button onClick={submit}
-            className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-[#060d1f] text-sm font-semibold transition-colors">
-            {iniziale ? "Salva modifiche" : "Crea cliente"}
-          </button>
         </div>
       </div>
     </div>

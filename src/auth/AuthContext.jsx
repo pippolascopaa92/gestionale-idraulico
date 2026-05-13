@@ -99,7 +99,11 @@ export function AuthProvider({ children }) {
         setAcc(local);
         setReady(true);
         // Migra su Supabase in background
-        supabase.from('accounts').upsert(local, { onConflict: 'id' });
+        supabase.from('accounts').upsert(local, { onConflict: 'id' })
+          .then(({ error: migErr }) => {
+            if (migErr) console.error('[Auth] Migrazione localStorage→Supabase FALLITA:', migErr.message, migErr.code);
+            else console.log('[Auth] Migrazione localStorage→Supabase OK:', local.length, 'account');
+          });
         return;
       }
       // Prima esecuzione assoluta: crea admin default

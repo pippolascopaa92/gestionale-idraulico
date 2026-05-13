@@ -129,7 +129,7 @@ export function AuthProvider({ children }) {
   // ── Login ──────────────────────────────────────────────────────────────────
 
   const login = async (username, password, remember = false) => {
-    const accs = readAccounts() || [];
+    const accs = accounts.length > 0 ? accounts : (readAccounts() || []);
     const acc = accs.find(
       a => a.username.toLowerCase() === username.toLowerCase() && a.active !== false
     );

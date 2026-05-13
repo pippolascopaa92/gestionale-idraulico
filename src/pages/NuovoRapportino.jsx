@@ -423,6 +423,10 @@ function emptyRapportino() {
     email: "",
     partitaIva: "",
     data: dateStr,
+    mattinaInizio: "",
+    mattinaFine: "",
+    pomeriggioInizio: "",
+    pomeriggioFine: "",
     oraInizio: timeStr,
     oraFine: "",
     tecnicoId: "",
@@ -473,7 +477,19 @@ export default function NuovoRapportino() {
 
   // helper set field
   const set = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value, updatedAt: new Date().toISOString() }));
+    setForm((f) => {
+      const next = { ...f, [field]: value, updatedAt: new Date().toISOString() };
+      // Sincronizza oraInizio/oraFine dai campi mattina/pomeriggio
+      if (['mattinaInizio','mattinaFine','pomeriggioInizio','pomeriggioFine'].includes(field)) {
+        const mi = field === 'mattinaInizio'    ? value : next.mattinaInizio;
+        const mf = field === 'mattinaFine'      ? value : next.mattinaFine;
+        const pi = field === 'pomeriggioInizio' ? value : next.pomeriggioInizio;
+        const pf = field === 'pomeriggioFine'   ? value : next.pomeriggioFine;
+        next.oraInizio = mi || pi || '';
+        next.oraFine   = pf || mf || '';
+      }
+      return next;
+    });
     if (errors[field]) setErrors((e) => { const c = { ...e }; delete c[field]; return c; });
   };
 
@@ -529,7 +545,7 @@ export default function NuovoRapportino() {
     const e = {};
     if (!form.clienteId) e.clienteId = "Seleziona un cliente";
     if (!form.data) e.data = "Data obbligatoria";
-    if (!form.oraInizio) e.oraInizio = "Ora inizio obbligatoria";
+    if (!form.mattinaInizio && !form.pomeriggioInizio) e.mattinaInizio = "Inserire almeno un orario";
     if (!form.tecnicoId) e.tecnicoId = "Seleziona un tecnico";
     if (!form.descrizione.trim()) e.descrizione = "Descrizione obbligatoria";
     setErrors(e);
@@ -780,13 +796,39 @@ export default function NuovoRapportino() {
               <Input type="date" value={form.data} onChange={(e) => set("data", e.target.value)} />
               {errors.data && <ErrMsg msg={errors.data} />}
             </Field>
-            <Field label="Ora inizio" required>
-              <Input type="time" value={form.oraInizio} onChange={(e) => set("oraInizio", e.target.value)} />
-              {errors.oraInizio && <ErrMsg msg={errors.oraInizio} />}
-            </Field>
-            <Field label="Ora fine">
-              <Input type="time" value={form.oraFine} onChange={(e) => set("oraFine", e.target.value)} />
-            </Field>
+          </div>
+
+          {/* Orari mattina / pomeriggio */}
+          <div className="mt-5 space-y-3">
+            {/* Riga mattina */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs font-semibold uppercase tracking-widest w-24 shrink-0"
+                    style={{ color: "var(--text-3)" }}>Mattina</span>
+              <Field label="Inizio">
+                <Input type="time" value={form.mattinaInizio}
+                  onChange={(e) => set("mattinaInizio", e.target.value)} />
+              </Field>
+              <span style={{ color: "var(--text-4)" }}>→</span>
+              <Field label="Fine">
+                <Input type="time" value={form.mattinaFine}
+                  onChange={(e) => set("mattinaFine", e.target.value)} />
+              </Field>
+            </div>
+            {/* Riga pomeriggio */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs font-semibold uppercase tracking-widest w-24 shrink-0"
+                    style={{ color: "var(--text-3)" }}>Pomeriggio</span>
+              <Field label="Inizio">
+                <Input type="time" value={form.pomeriggioInizio}
+                  onChange={(e) => set("pomeriggioInizio", e.target.value)} />
+              </Field>
+              <span style={{ color: "var(--text-4)" }}>→</span>
+              <Field label="Fine">
+                <Input type="time" value={form.pomeriggioFine}
+                  onChange={(e) => set("pomeriggioFine", e.target.value)} />
+              </Field>
+            </div>
+            {errors.mattinaInizio && <ErrMsg msg={errors.mattinaInizio} />}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">

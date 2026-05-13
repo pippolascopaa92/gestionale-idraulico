@@ -80,10 +80,10 @@ const TIPO_CONFIG = {
 }
 
 const STATO_CONFIG = {
-  bozza: { label: 'Bozza', color: 'text-slate-400', bg: 'bg-slate-700' },
-  completato: { label: 'Completato', color: 'text-green-400', bg: 'bg-green-900/40' },
-  inviato: { label: 'Inviato', color: 'text-blue-400', bg: 'bg-blue-900/40' },
-  fatturato: { label: 'Fatturato', color: 'text-amber-400', bg: 'bg-amber-900/40' },
+  bozza:      { label: 'Da svolgere',    color: 'text-slate-400',  bg: 'bg-slate-700'      },
+  completato: { label: 'In svolgimento', color: 'text-green-400',  bg: 'bg-green-900/40'   },
+  inviato:    { label: 'Lavoro svolto',  color: 'text-blue-400',   bg: 'bg-blue-900/40'    },
+  fatturato:  { label: 'Fatturato',      color: 'text-amber-400',  bg: 'bg-amber-900/40'   },
 }
 
 const GIORNI_SETTIMANA = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']

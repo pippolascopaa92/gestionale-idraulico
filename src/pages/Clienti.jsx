@@ -107,10 +107,10 @@ const TIPO_INT_CONFIG = {
 // ─── STATO RAPPORTINO ─────────────────────────────────────────────────────────
 
 const STATO_CONFIG = {
-  bozza:      { label: "Bozza",      color: "text-slate-400",  bg: "bg-slate-400/10"  },
-  completato: { label: "Completato", color: "text-emerald-400",bg: "bg-emerald-400/10"},
-  inviato:    { label: "Inviato",    color: "text-sky-400",    bg: "bg-sky-400/10"    },
-  fatturato:  { label: "Fatturato",  color: "text-amber-400",  bg: "bg-amber-400/10"  },
+  bozza:      { label: "Da svolgere",    color: "text-slate-400",  bg: "bg-slate-400/10"  },
+  completato: { label: "In svolgimento", color: "text-emerald-400",bg: "bg-emerald-400/10"},
+  inviato:    { label: "Lavoro svolto",  color: "text-sky-400",    bg: "bg-sky-400/10"    },
+  fatturato:  { label: "Fatturato",      color: "text-amber-400",  bg: "bg-amber-400/10"  },
 };
 
 // ─── FORM VUOTO ───────────────────────────────────────────────────────────────

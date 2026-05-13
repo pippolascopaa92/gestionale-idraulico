@@ -93,10 +93,10 @@ const TIPI_INTERVENTO = [
 ];
 
 const STATI = [
-  { value: "bozza",      label: "Bozza",      color: "#6b7280" },
-  { value: "completato", label: "Completato", color: "#10b981" },
-  { value: "inviato",    label: "Inviato",    color: "#3b82f6" },
-  { value: "fatturato",  label: "Fatturato",  color: "#f59e0b" },
+  { value: "bozza",      label: "Da svolgere",    color: "#6b7280" },
+  { value: "completato", label: "In svolgimento", color: "#10b981" },
+  { value: "inviato",    label: "Lavoro svolto",  color: "#3b82f6" },
+  { value: "fatturato",  label: "Fatturato",      color: "#f59e0b" },
 ];
 
 const UNITA = ["pz", "m", "m²", "kg", "lt", "conf", "rotolo", "set"];
@@ -618,7 +618,7 @@ export default function NuovoRapportino() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
             style={{ background: "var(--bg-elevated)", color: "var(--text-2)", border: "1px solid var(--border)" }}>
             <Save size={14} />
-            Salva bozza
+            Salva (da svolgere)
           </button>
 
           <button
@@ -1139,7 +1139,7 @@ export default function NuovoRapportino() {
               onClick={() => handleSave("bozza")}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
               style={{ background: "var(--bg-elevated)", color: "var(--text-2)", border: "1px solid var(--border)" }}>
-              <Save size={14} /> Salva come bozza
+              <Save size={14} /> Salva (da svolgere)
             </button>
             <button
               type="button"

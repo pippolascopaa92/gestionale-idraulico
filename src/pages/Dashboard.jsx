@@ -69,11 +69,11 @@ const TIPO_CONFIG = {
 };
 
 const STATO_CONFIG = {
-  bozza:      { label: "Bozza",     dot: "bg-gray-500",   text: "text-gray-400" },
-  in_corso:   { label: "In corso",  dot: "bg-amber-400",  text: "text-amber-400" },
-  completato: { label: "Completato",dot: "bg-emerald-400",text: "text-emerald-400" },
-  inviato:    { label: "Inviato",   dot: "bg-blue-400",   text: "text-blue-400" },
-  fatturato:  { label: "Fatturato", dot: "bg-violet-400", text: "text-violet-400" },
+  bozza:      { label: "Da svolgere",    dot: "bg-gray-500",   text: "text-gray-400"    },
+  in_corso:   { label: "In corso",       dot: "bg-amber-400",  text: "text-amber-400"   },
+  completato: { label: "In svolgimento", dot: "bg-emerald-400",text: "text-emerald-400" },
+  inviato:    { label: "Lavoro svolto",  dot: "bg-blue-400",   text: "text-blue-400"    },
+  fatturato:  { label: "Fatturato",      dot: "bg-violet-400", text: "text-violet-400"  },
 };
 
 const FILTER_LABELS = {
@@ -443,7 +443,7 @@ export default function Dashboard() {
           value={bozze.length}
           icon={Clock}
           accent="#94a3b8"
-          sub={bozze.length > 0 ? "Da completare o inviare" : "Nessuna bozza aperta"}
+          sub={bozze.length > 0 ? "Lavori in attesa" : "Nessun lavoro in attesa"}
           onClick={() => setFilter(filter === "bozze" ? "tutti" : "bozze")}
           active={filter === "bozze"}
         />

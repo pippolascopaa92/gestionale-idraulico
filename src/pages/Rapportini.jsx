@@ -66,10 +66,10 @@ export default function Rapportini() {
   const [toDelete, setToDelete] = useState(null);
 
   const STATI = [
-    { value: 'bozza', label: 'Bozza' },
-    { value: 'completato', label: 'Completato' },
-    { value: 'inviato', label: 'Inviato' },
-    { value: 'fatturato', label: 'Fatturato' },
+    { value: 'bozza',      label: 'Da svolgere'    },
+    { value: 'completato', label: 'In svolgimento'  },
+    { value: 'inviato',    label: 'Lavoro svolto'   },
+    { value: 'fatturato',  label: 'Fatturato'       },
   ];
 
   const filteredRapportini = rapportini.filter(r => {

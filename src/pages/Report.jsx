@@ -17,7 +17,7 @@ const PERIODI = [
 ];
 
 const STATI_LABEL = {
-  bozza: "Bozza", completato: "Completato", inviato: "Inviato", fatturato: "Fatturato",
+  bozza: "Da svolgere", completato: "In svolgimento", inviato: "Lavoro svolto", fatturato: "Fatturato",
 };
 
 const TIPI_LABEL = {

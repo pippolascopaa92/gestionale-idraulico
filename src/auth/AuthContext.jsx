@@ -85,6 +85,8 @@ export function AuthProvider({ children }) {
   // Inizializza accounts da Supabase (con fallback localStorage)
   useEffect(() => {
     supabase.from('accounts').select('*').then(async ({ data, error }) => {
+      if (error) console.error('[Auth] Supabase accounts error:', error.message, error.code);
+      else console.log('[Auth] Supabase accounts caricati:', data?.length ?? 0);
       if (!error && data && data.length > 0) {
         saveAccounts(data);
         setAcc(data);

@@ -6,7 +6,7 @@ export const useData = () => useContext(DataContext);
 
 function applyRt(setter, payload) {
   const { eventType, new: n, old: o } = payload;
-  if (eventType === 'INSERT') setter(p => [...p, n]);
+  if (eventType === 'INSERT') setter(p => p.some(x => x.id === n.id) ? p : [...p, n]);
   else if (eventType === 'UPDATE') setter(p => p.map(x => x.id === n.id ? n : x));
   else if (eventType === 'DELETE') setter(p => p.filter(x => x.id !== o.id));
 }

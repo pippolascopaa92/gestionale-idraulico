@@ -15,6 +15,7 @@ import {
   Warehouse,
   HardDriveDownload,
   LogOut,
+  HardHat,
 } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 
@@ -44,6 +45,7 @@ const NAV_SECTIONS = [
     label: 'Gestione',
     items: [
       { to: '/clienti', icon: Users, label: 'Clienti' },
+      { to: '/tecnici', icon: HardHat, label: 'Tecnici' },
       { to: '/calendario', icon: CalendarDays, label: 'Calendario' },
       { to: '/magazzino', icon: Warehouse, label: 'Magazzino' },
       { to: '/commesse', icon: FolderKanban, label: 'Commesse' },

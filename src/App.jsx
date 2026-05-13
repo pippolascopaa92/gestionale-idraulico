@@ -14,6 +14,7 @@ import Manutenzioni from './pages/Manutenzioni'
 import Report from './pages/Report'
 import Backup from './pages/Backup'
 import Impostazioni from './pages/Impostazioni'
+import Tecnici from './pages/Tecnici'
 import Login from './pages/Login'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { DataProvider } from './context/DataContext'
@@ -239,6 +240,7 @@ export default function App() {
                 <Route path="/magazzino"          element={<Magazzino />} />
                 <Route path="/commesse"           element={<CommessePage />} />
                 <Route path="/commesse/:id"       element={<CommessePage />} />
+                <Route path="/tecnici"            element={<Tecnici />} />
                 <Route path="/manutenzioni"       element={<Manutenzioni />} />
                 <Route path="/report"             element={<Report />} />
                 <Route path="/backup"             element={<Backup />} />

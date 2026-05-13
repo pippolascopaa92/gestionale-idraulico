@@ -75,7 +75,7 @@ function NavItem({ item, collapsed }) {
             : accent
             ? 'text-amber-500 dark:text-amber-300 hover:bg-amber-500/8 hover:text-amber-600 dark:hover:text-amber-300'
             : 'text-zinc-500 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-slate-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-          collapsed ? 'justify-center px-2' : '',
+          isCollapsed ? 'justify-center px-2' : '',
         ].join(' ')
       }
       title={collapsed ? label : undefined}
@@ -152,6 +152,7 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
   const company = useCompany();
   const brandName = company.nomeAzienda || company.nomeApp || 'HydroDesk';
   const brandSub  = company.piva ? `P.IVA ${company.piva}` : company.citta || company.indirizzo || 'Gestionale';
+  const isCollapsed = mobileOpen ? false : collapsed;
   return (
     <aside
       className={[
@@ -159,14 +160,14 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
         'fixed top-0 left-0 inset-y-0 z-20 md:relative md:inset-auto md:z-auto',
         'sidebar-transition shrink-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-        collapsed ? 'w-60 md:w-16' : 'w-60',
+        isCollapsed ? 'w-60 md:w-16' : 'w-60',
       ].join(' ')}
     >
       {/* Logo / Brand */}
       <div
         className={[
           'flex items-center gap-3 px-4 py-5 border-b border-slate-200 dark:border-[#1a3358]/60',
-          collapsed ? 'justify-center px-2' : '',
+          isCollapsed ? 'justify-center px-2' : '',
         ].join(' ')}
       >
         <div className="relative shrink-0">
@@ -175,7 +176,7 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-white dark:border-[#080f20] pulse-dot" />
         </div>
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="overflow-hidden">
             <p className="text-sm font-bold text-slate-900 dark:text-white leading-none tracking-tight truncate">{brandName}</p>
             <p className="text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase truncate">{brandSub}</p>
@@ -187,15 +188,15 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-5">
         {filterNav(NAV_SECTIONS, user).map((section) => (
           <div key={section.label}>
-            {!collapsed && (
+            {!isCollapsed && (
               <p className="section-title px-2 mb-2">{section.label}</p>
             )}
-            {collapsed && (
+            {isCollapsed && (
               <div className="border-t border-slate-200 dark:border-[#1a3358]/40 mx-2 mb-2" />
             )}
             <div className="space-y-0.5">
               {section.items.map((item) => (
-                <NavItem key={item.to} item={item} collapsed={collapsed} />
+                <NavItem key={item.to} item={item} collapsed={isCollapsed} />
               ))}
             </div>
           </div>
@@ -212,21 +213,21 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
               isActive
                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                 : 'text-zinc-500 dark:text-slate-500 hover:text-zinc-900 dark:hover:text-slate-300 hover:bg-zinc-100 dark:hover:bg-white/5',
-              collapsed ? 'justify-center px-2' : '',
+              isCollapsed ? 'justify-center px-2' : '',
             ].join(' ')
           }
-          title={collapsed ? 'Impostazioni' : undefined}
+          title={isCollapsed ? 'Impostazioni' : undefined}
         >
           <Settings size={17} strokeWidth={1.8} className="shrink-0" />
-          {!collapsed && <span>Impostazioni</span>}
+          {!isCollapsed && <span>Impostazioni</span>}
         </NavLink>
 
         {/* Utente loggato */}
-        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg bg-zinc-50 dark:bg-white/3 border border-zinc-100 dark:border-transparent ${collapsed ? 'justify-center' : ''}`}>
+        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg bg-zinc-50 dark:bg-white/3 border border-zinc-100 dark:border-transparent ${isCollapsed ? 'justify-center' : ''}`}>
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0">
             <span className="text-[11px] font-bold text-white">{iniziali(user?.nome || user?.username)}</span>
           </div>
-          {!collapsed && (
+          {!isCollapsed && (
             <>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-zinc-800 dark:text-slate-300 truncate">{user?.nome || user?.username}</p>
@@ -257,9 +258,9 @@ export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose
           'flex items-center justify-center shadow-lg',
           'transition-colors duration-150 z-10',
         ].join(' ')}
-        title={collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'}
+        title={isCollapsed ? 'Espandi sidebar' : 'Comprimi sidebar'}
       >
-        {(window.innerWidth < 768 || !collapsed) ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+        {(window.innerWidth < 768 || !isCollapsed) ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
       </button>
     </aside>
   )

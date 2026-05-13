@@ -437,6 +437,7 @@ function emptyRapportino() {
     anomalie: "",
     foto: [],
     firma: null,
+    firmaTecnico: null,
     stato: "bozza",
     commessaId: "",
     costoOrario: "",
@@ -1161,6 +1162,20 @@ export default function NuovoRapportino() {
           {form.firma && (
             <p className="text-xs mt-2 flex items-center gap-1.5" style={{ color: "#10b981" }}>
               <Check size={12} /> Firma acquisita
+            </p>
+          )}
+        </Card>
+
+        {/* ── SEZIONE 8: Firma tecnico ── */}
+        <Card>
+          <SectionTitle icon={PenLine} label="Firma tecnico" step="8" />
+          <FirmaCanvas
+            firmaData={form.firmaTecnico}
+            onSave={(data) => set("firmaTecnico", data)}
+          />
+          {form.firmaTecnico && (
+            <p className="text-xs mt-2 flex items-center gap-1.5" style={{ color: "#10b981" }}>
+              <Check size={12} /> Firma tecnico acquisita
             </p>
           )}
         </Card>

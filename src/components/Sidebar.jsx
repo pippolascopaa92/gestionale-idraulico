@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import {
   LayoutDashboard,
   FilePlus2,
+  ClipboardList,
   Users,
   CalendarDays,
   FolderKanban,
@@ -39,6 +40,7 @@ const NAV_SECTIONS = [
     items: [
       { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
       { to: '/rapportino/nuovo', icon: FilePlus2, label: 'Nuovo Rapportino', accent: true },
+      { to: '/rapportini', icon: ClipboardList, label: 'Rapportini' },
     ],
   },
   {

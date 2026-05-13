@@ -125,7 +125,8 @@ export function AuthProvider({ children }) {
   const persistAccounts = (list) => {
     saveAccounts(list);
     setAcc(list);
-    supabase.from('accounts').upsert(list, { onConflict: 'id' });
+    supabase.from('accounts').upsert(list, { onConflict: 'id' })
+      .then(({ error }) => { if (error) console.error('[Auth] persistAccounts error:', error.message, error.code); });
   };
 
   // ── Login ──────────────────────────────────────────────────────────────────

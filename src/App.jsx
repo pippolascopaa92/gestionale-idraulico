@@ -1,5 +1,6 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { X, Clock } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
 import Dashboard from './pages/Dashboard'
@@ -60,10 +61,86 @@ function ThemeProvider({ children }) {
   )
 }
 
+// ─── Trial Popup ──────────────────────────────────────────────────────────────
+
+function TrialPopup({ user, onClose }) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  if (!user?.trialEndDate) return null
+
+  const [y, m, d] = user.trialEndDate.split('-').map(Number)
+  const expiry = new Date(y, m - 1, d, 23, 59, 59, 999)
+  const diffMs = expiry - new Date()
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  if (diffDays <= 0) return null
+
+  const formatted = new Date(y, m - 1, d).toLocaleDateString('it-IT', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  })
+
+  const urgency = diffDays <= 3 ? 'red' : diffDays <= 7 ? 'amber' : 'blue'
+  const colors = {
+    red:   { badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: 'text-red-500', btn: 'bg-red-500 hover:bg-red-600' },
+    amber: { badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', icon: 'text-amber-500', btn: 'bg-amber-500 hover:bg-amber-600' },
+    blue:  { badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: 'text-blue-500', btn: 'bg-amber-500 hover:bg-amber-600' },
+  }[urgency]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+      <div className={`w-full max-w-sm rounded-2xl shadow-2xl border p-6
+        ${isDark ? 'bg-[#0f2040] border-[#1a3358]' : 'bg-white border-zinc-200'}`}>
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${colors.badge}`}>
+              <Clock size={18} className={colors.icon} />
+            </div>
+            <div>
+              <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>
+                Periodo di prova
+              </p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-zinc-500'}`}>
+                Account: {user.nome || user.username}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className={`p-1 rounded-lg transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'}`}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className={`rounded-xl p-4 mb-4 ${isDark ? 'bg-white/5' : 'bg-zinc-50'}`}>
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-zinc-600'}`}>
+            Il tuo accesso scade il{' '}
+            <span className={`font-semibold ${isDark ? 'text-white' : 'text-zinc-900'}`}>{formatted}</span>.
+          </p>
+          <p className={`text-2xl font-bold mt-2 ${colors.icon}`}>
+            {diffDays} {diffDays === 1 ? 'giorno' : 'giorni'} rimanenti
+          </p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className={`w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${colors.btn}`}
+        >
+          Ho capito
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Layout Shell ─────────────────────────────────────────────────────────────
 
 function AppShell({ children }) {
   const { theme } = useTheme()
+  const { user } = useAuth()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const stored = localStorage.getItem('hydrodesk:sidebar:collapsed')
@@ -71,6 +148,20 @@ function AppShell({ children }) {
   })
 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
+  // Trial popup: mostrato una volta per sessione
+  const [showTrial, setShowTrial] = useState(false)
+  const shownRef = useRef(false)
+  useEffect(() => {
+    if (user?.trialEndDate && !shownRef.current) {
+      const key = `hydrodesk:trial_seen:${user.id}`
+      if (!sessionStorage.getItem(key)) {
+        setShowTrial(true)
+        sessionStorage.setItem(key, '1')
+      }
+      shownRef.current = true
+    }
+  }, [user?.id])
 
   useEffect(() => {
     localStorage.setItem('hydrodesk:sidebar:collapsed', sidebarCollapsed)
@@ -110,6 +201,10 @@ function AppShell({ children }) {
           className="md:hidden fixed inset-0 bg-black/50 z-[15] backdrop-blur-sm"
           onClick={() => setMobileSidebarOpen(false)}
         />
+      )}
+
+      {showTrial && (
+        <TrialPopup user={user} onClose={() => setShowTrial(false)} />
       )}
     </div>
   )

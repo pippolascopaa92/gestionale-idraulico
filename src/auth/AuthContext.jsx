@@ -70,6 +70,7 @@ function buildSession(acc) {
     nome: acc.nome,
     role: acc.role,
     permissions: acc.role === 'dipendente' ? (acc.permissions ?? EMPTY_PERMS) : ALL_PERMS,
+    trialEndDate: acc.trialEndDate || null,
   };
 }
 

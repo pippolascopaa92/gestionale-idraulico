@@ -635,7 +635,7 @@ export default function NuovoRapportino() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
             style={{ background: "var(--bg-elevated)", color: "var(--text-2)", border: "1px solid var(--border)" }}>
             <Save size={14} />
-            Salva (da svolgere)
+            Salva come: da svolgere
           </button>
 
           <button
@@ -643,8 +643,8 @@ export default function NuovoRapportino() {
             onClick={() => handleSave("completato")}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
             style={{ background: saved ? "#10b981" : "#f59e0b", color: "#060d1f" }}>
-            {saved ? <Check size={14} /> : <Check size={14} />}
-            {saved ? "Salvato!" : "Completa"}
+            <Check size={14} />
+            {saved ? "Salvato!" : "Lavoro completato"}
           </button>
         </div>
       </div>
@@ -1207,7 +1207,7 @@ export default function NuovoRapportino() {
                 color: "#060d1f",
                 boxShadow: saved ? "0 0 16px #10b98144" : "0 0 20px #f59e0b44",
               }}>
-              {saved ? <><Check size={14} /> Salvato!</> : <><Check size={14} /> Completa rapportino</>}
+              {saved ? <><Check size={14} /> Salvato!</> : <><Check size={14} /> Lavoro completato</>}
             </button>
           </div>
         </div>

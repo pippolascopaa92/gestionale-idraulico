@@ -111,12 +111,15 @@ function KpiCard({ label, value, sub, icon: Icon, accent, trend, onClick, active
   return (
     <div
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className={`relative overflow-hidden rounded-2xl p-5 flex flex-col gap-3 transition-all duration-200
         ${onClick ? "cursor-pointer hover:scale-[1.02] active:scale-[0.98]" : ""}`}
       style={{
         background: "var(--bg-card-grad)",
         border: active ? `2px solid ${accent}` : "1px solid var(--divide)",
         boxShadow: active ? `0 0 24px ${accent}33` : undefined,
+        touchAction: "manipulation",
       }}
     >
       {/* accent glow */}

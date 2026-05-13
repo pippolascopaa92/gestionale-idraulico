@@ -147,7 +147,7 @@ function filterNav(sections, user) {
   })).filter(s => s.items.length > 0);
 }
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, mobileOpen, onToggle, onMobileClose }) {
   const { user, logout } = useAuth();
   const company = useCompany();
   const brandName = company.nomeAzienda || company.nomeApp || 'HydroDesk';
@@ -155,9 +155,11 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside
       className={[
-        'relative flex flex-col h-full bg-white dark:bg-[#080f20] border-r border-slate-200 dark:border-[#1a3358]/60',
+        'flex flex-col bg-white dark:bg-[#080f20] border-r border-slate-200 dark:border-[#1a3358]/60',
+        'fixed top-0 left-0 inset-y-0 z-20 md:relative md:inset-auto md:z-auto',
         'sidebar-transition shrink-0',
-        collapsed ? 'w-16' : 'w-60',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+        collapsed ? 'w-60 md:w-16' : 'w-60',
       ].join(' ')}
     >
       {/* Logo / Brand */}
@@ -241,7 +243,13 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Collapse toggle */}
       <button
-        onClick={onToggle}
+        onClick={() => {
+          if (window.innerWidth < 768) {
+            onMobileClose?.()
+          } else {
+            onToggle()
+          }
+        }}
         className={[
           'absolute -right-3 top-20 w-6 h-6 rounded-full',
           'bg-white dark:bg-[#0f2040] border border-slate-200 dark:border-[#1a3358] text-slate-400',
@@ -251,7 +259,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         ].join(' ')}
         title={collapsed ? 'Espandi sidebar' : 'Comprimi sidebar'}
       >
-        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        {(window.innerWidth < 768 || !collapsed) ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
       </button>
     </aside>
   )

@@ -70,14 +70,15 @@ function AppShell({ children }) {
     return stored === 'true'
   })
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
   useEffect(() => {
     localStorage.setItem('hydrodesk:sidebar:collapsed', sidebarCollapsed)
   }, [sidebarCollapsed])
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)')
-    const handler = (e) => { if (e.matches) setSidebarCollapsed(true) }
-    if (mq.matches) setSidebarCollapsed(true)
+    const mq = window.matchMedia('(min-width: 768px)')
+    const handler = (e) => { if (e.matches) setMobileSidebarOpen(false) }
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
@@ -88,24 +89,26 @@ function AppShell({ children }) {
 
       <Sidebar
         collapsed={sidebarCollapsed}
+        mobileOpen={mobileSidebarOpen}
         onToggle={() => setSidebarCollapsed((v) => !v)}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <Topbar />
+        <Topbar onMenuClick={() => setMobileSidebarOpen(true)} />
 
         <main className={`flex-1 overflow-y-auto transition-colors duration-300
           ${theme === 'dark' ? 'bg-[#060d1f]' : 'bg-zinc-50'}`}>
-          <div className="page-enter p-5 md:p-6 min-h-full">
+          <div className="page-enter p-4 md:p-6 min-h-full">
             {children}
           </div>
         </main>
       </div>
 
-      {!sidebarCollapsed && (
+      {mobileSidebarOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-[5] backdrop-blur-sm"
-          onClick={() => setSidebarCollapsed(true)}
+          className="md:hidden fixed inset-0 bg-black/50 z-[15] backdrop-blur-sm"
+          onClick={() => setMobileSidebarOpen(false)}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Menu } from 'lucide-react'
 import { useTheme } from '../App'
 
 // ─── Mappa breadcrumb ─────────────────────────────────────────────────────────
@@ -61,21 +61,32 @@ function ThemeToggle() {
 
 // ─── Topbar ───────────────────────────────────────────────────────────────────
 
-export default function Topbar() {
+export default function Topbar({ onMenuClick }) {
   const { theme } = useTheme()
   const location  = useLocation()
   const crumbs    = getBreadcrumb(location.pathname)
   const isDark    = theme === 'dark'
 
   return (
-    <header className={`flex items-center justify-between h-14 px-5 shrink-0 border-b transition-colors duration-300
+    <header className={`flex items-center justify-between h-14 px-4 md:px-5 shrink-0 border-b transition-colors duration-300
       ${isDark
         ? 'bg-[#080f20] border-white/5'
         : 'bg-white border-slate-200 shadow-sm'
       }`}>
 
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-sm">
+      {/* Sinistra: hamburger (mobile) + breadcrumb */}
+      <div className="flex items-center gap-2 text-sm">
+        <button
+          onClick={onMenuClick}
+          className={`md:hidden p-1.5 rounded-lg transition-colors
+            ${isDark
+              ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+              : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+            }`}
+          title="Apri menu"
+        >
+          <Menu size={20} />
+        </button>
         <span className={isDark ? 'text-slate-500' : 'text-slate-400'}>
           HydroDesk
         </span>

@@ -75,7 +75,7 @@ function NavItem({ item, collapsed }) {
             : accent
             ? 'text-amber-500 dark:text-amber-300 hover:bg-amber-500/8 hover:text-amber-600 dark:hover:text-amber-300'
             : 'text-zinc-500 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-slate-200 hover:bg-zinc-100 dark:hover:bg-white/5',
-          isCollapsed ? 'justify-center px-2' : '',
+          collapsed ? 'justify-center px-2' : '',
         ].join(' ')
       }
       title={collapsed ? label : undefined}

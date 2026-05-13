@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useData } from '../context/DataContext';
-import { Search, Trash2, Edit2, Check, Calendar, User, MapPin, Wrench, AlertTriangle, X } from 'lucide-react';
+import { Search, Trash2, Edit2, Check, Calendar, User, MapPin, Wrench, AlertTriangle, X, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+
+const TRASH_KEY = 'hydrodesk:trash_rapportini';
+const readTrash  = () => { try { return JSON.parse(localStorage.getItem(TRASH_KEY) || '[]'); } catch { return []; } };
+const saveTrash  = (list) => { try { localStorage.setItem(TRASH_KEY, JSON.stringify(list)); } catch {} };
 
 function DeleteModal({ rapportino, onConfirm, onCancel }) {
   const tipoLabel = rapportino?.tipoIntervento
@@ -52,15 +56,38 @@ function DeleteModal({ rapportino, onConfirm, onCancel }) {
 }
 
 export default function Rapportini() {
-  const { rapportini, deleteRapportino, ripristinaMagazzino } = useData();
+  const { rapportini, deleteRapportino, ripristinaMagazzino, upsertRapportino } = useData();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
+  const [trash, setTrash] = useState(readTrash);
+  const [showTrash, setShowTrash] = useState(false);
+
   const eliminaConRipristino = async (id) => {
     const rap = rapportini.find(r => r.id === id);
+    if (rap) {
+      const newTrash = [{ ...rap, deletedAt: new Date().toISOString() }, ...trash];
+      saveTrash(newTrash);
+      setTrash(newTrash);
+    }
     if (rap?.materiali?.length > 0) await ripristinaMagazzino(rap.materiali);
     await deleteRapportino(id);
   };
+
+  const ripristinaRapportino = async (rap) => {
+    const { deletedAt, ...data } = rap;
+    await upsertRapportino(data);
+    const newTrash = trash.filter(r => r.id !== rap.id);
+    saveTrash(newTrash);
+    setTrash(newTrash);
+  };
+
+  const eliminaDefinitivo = (id) => {
+    const newTrash = trash.filter(r => r.id !== id);
+    saveTrash(newTrash);
+    setTrash(newTrash);
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStato, setFilterStato] = useState('');
   const [toDelete, setToDelete] = useState(null);
@@ -239,6 +266,63 @@ export default function Rapportini() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Cestino interventi eliminati ── */}
+      <div className="px-6 pb-8">
+        <button
+          onClick={() => setShowTrash(v => !v)}
+          className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors w-full"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
+        >
+          <Trash2 size={15} />
+          Interventi eliminati
+          <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-mono"
+                style={{ background: trash.length > 0 ? '#ef444422' : 'transparent', color: trash.length > 0 ? '#ef4444' : 'var(--text-4)' }}>
+            {trash.length}
+          </span>
+          <span className="ml-auto">{showTrash ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</span>
+        </button>
+
+        {showTrash && (
+          <div className="mt-3 rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            {trash.length === 0 ? (
+              <p className="text-center py-6 text-sm" style={{ color: 'var(--text-4)' }}>Nessun intervento eliminato</p>
+            ) : (
+              <div className="divide-y" style={{ borderColor: 'var(--divide)' }}>
+                {trash.map(rap => (
+                  <div key={rap.id + rap.deletedAt}
+                    className="flex items-center gap-3 px-4 py-3"
+                    style={{ background: 'var(--bg-elevated)' }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-2)' }}>
+                        #{rap.id.slice(0, 8).toUpperCase()} — {rap.clienteNome || rap.clienteId || 'Cliente'}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
+                        {rap.data ? new Date(rap.data).toLocaleDateString('it-IT') : '—'}
+                        {' · '}Eliminato il {new Date(rap.deletedAt).toLocaleDateString('it-IT')}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => ripristinaRapportino(rap)}
+                      title="Ripristina"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: '#10b98120', color: '#10b981', border: '1px solid #10b98130' }}>
+                      <RotateCcw size={13} /> Ripristina
+                    </button>
+                    <button
+                      onClick={() => eliminaDefinitivo(rap.id)}
+                      title="Elimina definitivamente"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: '#ef4444' }}>
+                      <X size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

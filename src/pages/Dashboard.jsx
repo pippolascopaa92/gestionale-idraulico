@@ -207,9 +207,18 @@ function InterventoRow({ r, onNavigate }) {
           <TipoBadge tipo={r.tipo} />
         </div>
         <div className="text-xs text-slate-500 truncate mt-0.5">{r.indirizzoIntervento || r.indirizzo || ""}</div>
+        {/* Data + tecnico visibili su mobile sotto le info */}
+        <div className="flex items-center gap-2 mt-1 sm:hidden">
+          <span className="text-xs text-slate-500">{formatData(r.data)}</span>
+          {nomeTecnico && nomeTecnico !== "—" && (
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              <User size={9} />{nomeTecnico}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Meta: data + ora + tecnico */}
+      {/* Meta: data + ora + tecnico — solo sm+ */}
       <div className="shrink-0 text-right hidden sm:block">
         <div className="text-xs font-medium text-slate-400">{formatData(r.data)}</div>
         <div className="text-xs font-mono text-slate-500">{r.oraInizio}{durata ? ` · ${durata}` : ""}</div>
@@ -220,7 +229,7 @@ function InterventoRow({ r, onNavigate }) {
       </div>
 
       {/* Stato */}
-      <div className="shrink-0 w-24 text-right">
+      <div className="shrink-0 text-right">
         <StatoDot stato={r.stato} />
       </div>
 
@@ -468,8 +477,8 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Calendario completo sopra la lista */}
-      <div className="anim-4 rounded-2xl p-5 mb-4"
+      {/* Calendario completo — nascosto su mobile (troppo pesante) */}
+      <div className="hidden md:block anim-4 rounded-2xl p-5 mb-4"
           style={{ background: "var(--bg-card-grad)", border: "1px solid var(--divide)" }}>
         <Calendario embedded />
       </div>
@@ -557,9 +566,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ── Sidebar destra ── */}
-        <div className="flex flex-col gap-4">
-
+        {/* ── Sidebar destra — nascosta su mobile ── */}
+        <div className="hidden xl:flex flex-col gap-4">
 
           {/* Tecnici oggi */}
           <div className="anim-4 rounded-2xl p-5"

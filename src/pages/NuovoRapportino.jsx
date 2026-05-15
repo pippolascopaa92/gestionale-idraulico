@@ -606,51 +606,77 @@ export default function NuovoRapportino() {
     <div className="min-h-screen" style={{ background: "var(--bg-page)" }}>
 
       {/* ── topbar contestuale ── */}
-      <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4"
+      <div className="sticky top-0 z-20"
            style={{ background: "var(--sticky-bg)", borderBottom: "1px solid var(--border)", backdropFilter: "blur(12px)" }}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80"
-            style={{ color: "var(--text-3)" }}>
-            <ArrowLeft size={15} />
-            Indietro
-          </button>
-          <span style={{ color: "var(--border)" }}>/</span>
-          <span className="text-sm font-semibold" style={{ color: "var(--text-1)" }}>
-            {existing ? `Rapportino #${form.id.slice(-6).toUpperCase()}` : "Nuovo Rapportino"}
-          </span>
+        {/* Riga principale */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <button onClick={() => navigate(-1)}
+              className="flex items-center gap-1 text-sm transition-colors hover:opacity-80 shrink-0"
+              style={{ color: "var(--text-3)" }}>
+              <ArrowLeft size={15} />
+              <span className="hidden sm:inline">Indietro</span>
+            </button>
+            <span className="hidden sm:inline" style={{ color: "var(--border)" }}>/</span>
+            <span className="text-sm font-semibold truncate" style={{ color: "var(--text-1)" }}>
+              {existing ? `#${form.id.slice(-6).toUpperCase()}` : "Nuovo Rapportino"}
+            </span>
+          </div>
+
+          {/* Azioni desktop (sm+) */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Select value={form.stato} onChange={(e) => set("stato", e.target.value)}>
+              {STATI.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </Select>
+            <button
+              type="button"
+              onClick={() => handleSave("bozza")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              style={{ background: "var(--bg-elevated)", color: "var(--text-2)", border: "1px solid var(--border)" }}>
+              <Save size={14} />
+              Salva come: da svolgere
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave("completato")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: saved ? "#10b981" : "#f59e0b", color: "#060d1f" }}>
+              <Check size={14} />
+              {saved ? "Salvato!" : "Lavoro completato"}
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* stato badge */}
+        {/* Riga azioni mobile (solo sm-) */}
+        <div className="sm:hidden flex items-center gap-2 px-4 pb-3">
           <Select value={form.stato} onChange={(e) => set("stato", e.target.value)}>
             {STATI.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </Select>
-
           <button
             type="button"
             onClick={() => handleSave("bozza")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all shrink-0"
             style={{ background: "var(--bg-elevated)", color: "var(--text-2)", border: "1px solid var(--border)" }}>
-            <Save size={14} />
-            Salva come: da svolgere
+            <Save size={15} />
+            Bozza
           </button>
-
           <button
             type="button"
             onClick={() => handleSave("completato")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-all"
             style={{ background: saved ? "#10b981" : "#f59e0b", color: "#060d1f" }}>
-            <Check size={14} />
-            {saved ? "Salvato!" : "Lavoro completato"}
+            <Check size={15} />
+            {saved ? "Salvato!" : "Completa"}
           </button>
         </div>
       </div>
 
       {/* ── body ── */}
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5 sm:space-y-6">
 
         {/* intestazione */}
         <div className="flex items-start gap-4 mb-2">
@@ -800,34 +826,36 @@ export default function NuovoRapportino() {
           </div>
 
           {/* Orari mattina / pomeriggio */}
-          <div className="mt-5 space-y-3">
-            {/* Riga mattina */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-xs font-semibold uppercase tracking-widest w-24 shrink-0"
-                    style={{ color: "var(--text-3)" }}>Mattina</span>
-              <Field label="Inizio">
-                <Input type="time" value={form.mattinaInizio}
-                  onChange={(e) => set("mattinaInizio", e.target.value)} />
-              </Field>
-              <span style={{ color: "var(--text-4)" }}>→</span>
-              <Field label="Fine">
-                <Input type="time" value={form.mattinaFine}
-                  onChange={(e) => set("mattinaFine", e.target.value)} />
-              </Field>
+          <div className="mt-5 space-y-4">
+            {/* Mattina */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2"
+                 style={{ color: "var(--text-3)" }}>Mattina</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Inizio">
+                  <Input type="time" value={form.mattinaInizio}
+                    onChange={(e) => set("mattinaInizio", e.target.value)} />
+                </Field>
+                <Field label="Fine">
+                  <Input type="time" value={form.mattinaFine}
+                    onChange={(e) => set("mattinaFine", e.target.value)} />
+                </Field>
+              </div>
             </div>
-            {/* Riga pomeriggio */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-xs font-semibold uppercase tracking-widest w-24 shrink-0"
-                    style={{ color: "var(--text-3)" }}>Pomeriggio</span>
-              <Field label="Inizio">
-                <Input type="time" value={form.pomeriggioInizio}
-                  onChange={(e) => set("pomeriggioInizio", e.target.value)} />
-              </Field>
-              <span style={{ color: "var(--text-4)" }}>→</span>
-              <Field label="Fine">
-                <Input type="time" value={form.pomeriggioFine}
-                  onChange={(e) => set("pomeriggioFine", e.target.value)} />
-              </Field>
+            {/* Pomeriggio */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2"
+                 style={{ color: "var(--text-3)" }}>Pomeriggio</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Inizio">
+                  <Input type="time" value={form.pomeriggioInizio}
+                    onChange={(e) => set("pomeriggioInizio", e.target.value)} />
+                </Field>
+                <Field label="Fine">
+                  <Input type="time" value={form.pomeriggioFine}
+                    onChange={(e) => set("pomeriggioFine", e.target.value)} />
+                </Field>
+              </div>
             </div>
             {errors.mattinaInizio && <ErrMsg msg={errors.mattinaInizio} />}
           </div>
@@ -996,84 +1024,137 @@ export default function NuovoRapportino() {
                  style={{ border: "1.5px dashed var(--border)", color: "var(--text-3)" }}>
               <Package size={28} className="mx-auto mb-2 opacity-40" />
               <p className="text-sm">Nessun materiale aggiunto</p>
-              <p className="text-xs mt-1">Clicca "+ Aggiungi" per inserire i materiali</p>
+              <p className="text-xs mt-1">Premi "+ Aggiungi" per inserire i materiali</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <div className="min-w-[720px] space-y-2">
-                {/* header */}
-                <div className="flex items-center gap-2 px-1">
-                  <span className="flex-1 min-w-[150px] text-xs font-medium" style={{ color: "var(--text-4)" }}>Nome materiale</span>
-                  <span className="w-14 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Qtà</span>
-                  <span className="w-16 text-xs font-medium" style={{ color: "var(--text-4)" }}>U.M.</span>
-                  <span className="w-[84px] text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Acq. €/pz</span>
-                  <span className="w-14 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Ric. %</span>
-                  <span className="w-[84px] text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Vend. €/pz</span>
-                  <span className="w-20 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Totale</span>
-                  <span className="w-8" />
-                </div>
+            <>
+              {/* ── Vista card MOBILE ── */}
+              <div className="sm:hidden space-y-3">
                 {form.materiali.map((m, idx) => {
                   const totRiga = (parseFloat(m.quantita) || 0) * (parseFloat(m.prezzoVendita) || 0);
                   return (
-                    <div key={m.id} className="flex items-center gap-2">
-                      <div className="flex-1 min-w-[150px]">
-                        <Input value={m.nome} onChange={(e) => updateMateriale(idx, "nome", e.target.value)} placeholder="es. Valvola 1/2 poll" />
-                      </div>
-                      <div className="w-14">
-                        <input type="number" min="0" step="0.1" value={m.quantita}
-                          onChange={(e) => updateMateriale(idx, "quantita", e.target.value)}
-                          placeholder="1" className={inputCls}
-                          style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "var(--input-color)", fontFamily: "Space Mono, monospace", textAlign: "right" }} />
-                      </div>
-                      <div className="w-16">
-                        <Select value={m.unita} onChange={(e) => updateMateriale(idx, "unita", e.target.value)}>
-                          {UNITA.map((u) => <option key={u} value={u}>{u}</option>)}
-                        </Select>
-                      </div>
-                      {/* Prezzo acquisto — read-only, dal magazzino */}
-                      <div className="w-[84px]">
-                        <div className={inputCls + " text-right cursor-not-allowed"}
-                             style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-3)", fontFamily: "Space Mono, monospace", opacity: 0.7 }}>
-                          {m.prezzoAcquisto !== '' && m.prezzoAcquisto !== undefined && m.prezzoAcquisto !== null
-                            ? Number(m.prezzoAcquisto).toFixed(2)
-                            : '—'}
+                    <div key={m.id} className="rounded-xl p-3 space-y-3"
+                         style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                      {/* Nome + elimina */}
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                          <Input value={m.nome} onChange={(e) => updateMateriale(idx, "nome", e.target.value)} placeholder="es. Valvola 1/2 poll" />
                         </div>
-                      </div>
-                      {/* Ricarico % — modificabile, ricalcola vendita */}
-                      <div className="w-14">
-                        <input type="number" min="0" step="0.1" value={m.ricarico ?? ''}
-                          onChange={(e) => updateMateriale(idx, "ricarico", e.target.value)}
-                          placeholder="0" className={inputCls}
-                          style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "var(--input-color)", fontFamily: "Space Mono, monospace", textAlign: "right" }} />
-                      </div>
-                      {/* Prezzo vendita — modificabile */}
-                      <div className="w-[84px]">
-                        <input type="number" min="0" step="0.01" value={m.prezzoVendita ?? ''}
-                          onChange={(e) => updateMateriale(idx, "prezzoVendita", e.target.value)}
-                          placeholder="0.00" className={inputCls}
-                          style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "#f59e0b", fontFamily: "Space Mono, monospace", textAlign: "right", fontWeight: 600 }} />
-                      </div>
-                      {/* Totale riga */}
-                      <div className="w-20 text-right">
-                        <span className="text-sm font-mono font-semibold"
-                              style={{ color: totRiga > 0 ? "#f59e0b" : "var(--text-4)" }}>
-                          {totRiga > 0 ? totRiga.toFixed(2) + ' €' : '—'}
-                        </span>
-                      </div>
-                      <div className="w-8 flex justify-center">
                         <button type="button" onClick={() => removeMateriale(idx)}
-                          className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                          style={{ color: "#ef444466", background: "var(--bg-elevated)" }}
-                          onMouseOver={(e) => e.currentTarget.style.color = "#ef4444"}
-                          onMouseOut={(e) => e.currentTarget.style.color = "#ef444466"}>
-                          <Trash2 size={14} />
+                          className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-colors"
+                          style={{ color: "#ef4444", background: "rgba(239,68,68,0.1)" }}>
+                          <Trash2 size={18} />
                         </button>
                       </div>
+                      {/* Quantità + unità + prezzo vendita */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-4)" }}>Qtà</p>
+                          <input type="number" min="0" step="0.1" value={m.quantita}
+                            onChange={(e) => updateMateriale(idx, "quantita", e.target.value)}
+                            placeholder="1" className={inputCls}
+                            style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "var(--input-color)", fontFamily: "Space Mono, monospace", textAlign: "right" }} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-4)" }}>U.M.</p>
+                          <Select value={m.unita} onChange={(e) => updateMateriale(idx, "unita", e.target.value)}>
+                            {UNITA.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </Select>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-medium mb-1" style={{ color: "var(--text-4)" }}>€/pz vendita</p>
+                          <input type="number" min="0" step="0.01" value={m.prezzoVendita ?? ''}
+                            onChange={(e) => updateMateriale(idx, "prezzoVendita", e.target.value)}
+                            placeholder="0.00" className={inputCls}
+                            style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "#f59e0b", fontFamily: "Space Mono, monospace", textAlign: "right", fontWeight: 600 }} />
+                        </div>
+                      </div>
+                      {/* Totale riga */}
+                      {totRiga > 0 && (
+                        <div className="flex justify-end">
+                          <span className="text-sm font-mono font-semibold" style={{ color: "#f59e0b" }}>
+                            = {totRiga.toFixed(2)} €
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            </div>
+
+              {/* ── Vista tabella DESKTOP ── */}
+              <div className="hidden sm:block overflow-x-auto">
+                <div className="min-w-[720px] space-y-2">
+                  {/* header */}
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="flex-1 min-w-[150px] text-xs font-medium" style={{ color: "var(--text-4)" }}>Nome materiale</span>
+                    <span className="w-14 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Qtà</span>
+                    <span className="w-16 text-xs font-medium" style={{ color: "var(--text-4)" }}>U.M.</span>
+                    <span className="w-[84px] text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Acq. €/pz</span>
+                    <span className="w-14 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Ric. %</span>
+                    <span className="w-[84px] text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Vend. €/pz</span>
+                    <span className="w-20 text-xs font-medium text-right" style={{ color: "var(--text-4)" }}>Totale</span>
+                    <span className="w-8" />
+                  </div>
+                  {form.materiali.map((m, idx) => {
+                    const totRiga = (parseFloat(m.quantita) || 0) * (parseFloat(m.prezzoVendita) || 0);
+                    return (
+                      <div key={m.id} className="flex items-center gap-2">
+                        <div className="flex-1 min-w-[150px]">
+                          <Input value={m.nome} onChange={(e) => updateMateriale(idx, "nome", e.target.value)} placeholder="es. Valvola 1/2 poll" />
+                        </div>
+                        <div className="w-14">
+                          <input type="number" min="0" step="0.1" value={m.quantita}
+                            onChange={(e) => updateMateriale(idx, "quantita", e.target.value)}
+                            placeholder="1" className={inputCls}
+                            style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "var(--input-color)", fontFamily: "Space Mono, monospace", textAlign: "right" }} />
+                        </div>
+                        <div className="w-16">
+                          <Select value={m.unita} onChange={(e) => updateMateriale(idx, "unita", e.target.value)}>
+                            {UNITA.map((u) => <option key={u} value={u}>{u}</option>)}
+                          </Select>
+                        </div>
+                        <div className="w-[84px]">
+                          <div className={inputCls + " text-right cursor-not-allowed"}
+                               style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text-3)", fontFamily: "Space Mono, monospace", opacity: 0.7 }}>
+                            {m.prezzoAcquisto !== '' && m.prezzoAcquisto !== undefined && m.prezzoAcquisto !== null
+                              ? Number(m.prezzoAcquisto).toFixed(2)
+                              : '—'}
+                          </div>
+                        </div>
+                        <div className="w-14">
+                          <input type="number" min="0" step="0.1" value={m.ricarico ?? ''}
+                            onChange={(e) => updateMateriale(idx, "ricarico", e.target.value)}
+                            placeholder="0" className={inputCls}
+                            style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "var(--input-color)", fontFamily: "Space Mono, monospace", textAlign: "right" }} />
+                        </div>
+                        <div className="w-[84px]">
+                          <input type="number" min="0" step="0.01" value={m.prezzoVendita ?? ''}
+                            onChange={(e) => updateMateriale(idx, "prezzoVendita", e.target.value)}
+                            placeholder="0.00" className={inputCls}
+                            style={{ background: "var(--bg-input)", border: "1px solid var(--border)", color: "#f59e0b", fontFamily: "Space Mono, monospace", textAlign: "right", fontWeight: 600 }} />
+                        </div>
+                        <div className="w-20 text-right">
+                          <span className="text-sm font-mono font-semibold"
+                                style={{ color: totRiga > 0 ? "#f59e0b" : "var(--text-4)" }}>
+                            {totRiga > 0 ? totRiga.toFixed(2) + ' €' : '—'}
+                          </span>
+                        </div>
+                        <div className="w-8 flex justify-center">
+                          <button type="button" onClick={() => removeMateriale(idx)}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                            style={{ color: "#ef444466", background: "var(--bg-elevated)" }}
+                            onMouseOver={(e) => e.currentTarget.style.color = "#ef4444"}
+                            onMouseOut={(e) => e.currentTarget.style.color = "#ef444466"}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           )}
 
           {/* Riepilogo costi */}

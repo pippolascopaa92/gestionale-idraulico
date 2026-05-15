@@ -347,9 +347,9 @@ export default function Magazzino() {
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold dark:text-white text-slate-800">Magazzino</h1>
+            <h1 className="text-xl sm:text-2xl font-bold dark:text-white text-slate-800">Magazzino</h1>
             <p className="text-sm dark:text-slate-400 text-slate-500 mt-0.5">
               {prodotti.length} prodotti
               {scorteBasseCount > 0 && (
@@ -360,51 +360,121 @@ export default function Magazzino() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setModal('categorie')}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl border dark:border-[#1e2d4a] border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:text-white hover:text-slate-800 hover:dark:bg-white/5 hover:bg-slate-50 text-sm transition-colors"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl border dark:border-[#1e2d4a] border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:text-white hover:text-slate-800 hover:dark:bg-white/5 hover:bg-slate-50 text-sm transition-colors"
             >
-              <Tag size={15} /> Categorie
+              <Tag size={15} />
+              <span className="hidden sm:inline">Categorie</span>
             </button>
             <button
               onClick={() => setModal('new')}
-              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-sm transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-sm transition-colors"
             >
-              <Plus size={16} /> Nuovo Prodotto
+              <Plus size={16} />
+              <span>Nuovo Prodotto</span>
             </button>
           </div>
         </div>
 
-        {/* Filtri categoria + ricerca */}
-        <div className="flex gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-48">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
-            <input
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm dark:bg-[#080f20] bg-white dark:border-[#1e2d4a] border-slate-200 dark:text-slate-100 text-slate-800 focus:outline-none focus:border-amber-500 transition-colors"
-              placeholder="Cerca per nome o codice..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400">
-                <X size={14} />
-              </button>
-            )}
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {categorieLista.map(c => (
-              <button key={c} onClick={() => setCatFilter(c)}
-                className={`px-3 py-2 rounded-xl text-xs font-medium transition-colors
-                  ${catFilter === c
-                    ? 'bg-amber-500 text-black'
-                    : 'dark:bg-[#080f20] bg-white border dark:border-[#1e2d4a] border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:text-white hover:text-slate-800'
-                  }`}>
-                {c}
-              </button>
-            ))}
-          </div>
+        {/* Ricerca */}
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400" />
+          <input
+            className="w-full pl-9 pr-4 py-3 rounded-xl border text-sm dark:bg-[#080f20] bg-white dark:border-[#1e2d4a] border-slate-200 dark:text-slate-100 text-slate-800 focus:outline-none focus:border-amber-500 transition-colors"
+            placeholder="Cerca per nome o codice..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 dark:text-slate-500 text-slate-400">
+              <X size={14} />
+            </button>
+          )}
         </div>
 
-        {/* Tabella — scrollabile orizzontalmente per stare nel layout */}
-        <div className="rounded-xl border dark:border-[#1e2d4a] border-slate-200 dark:bg-[#080f20] bg-white overflow-hidden">
+        {/* Filtri categoria — scroll orizzontale su mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {categorieLista.map(c => (
+            <button key={c} onClick={() => setCatFilter(c)}
+              className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap shrink-0 transition-colors
+                ${catFilter === c
+                  ? 'bg-amber-500 text-black'
+                  : 'dark:bg-[#080f20] bg-white border dark:border-[#1e2d4a] border-slate-200 dark:text-slate-400 text-slate-500 hover:dark:text-white hover:text-slate-800'
+                }`}>
+              {c}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Vista CARD per mobile ── */}
+        <div className="md:hidden space-y-3">
+          {filtered.length === 0 ? (
+            <div className="py-14 text-center">
+              <Package size={32} className="mx-auto mb-3 dark:text-slate-700 text-slate-300" />
+              <p className="text-sm dark:text-slate-500 text-slate-400">
+                {search || catFilter !== 'Tutti' ? 'Nessun risultato' : 'Magazzino vuoto'}
+              </p>
+            </div>
+          ) : filtered.map(p => {
+            const vendita = p.prezzoVendita || calcVendita(p.prezzoAcquisto, p.ricarico)
+            return (
+              <div key={p.id} className="rounded-xl border dark:border-[#1e2d4a] border-slate-200 dark:bg-[#080f20] bg-white p-4">
+                {/* Nome + azioni */}
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold dark:text-white text-slate-800 leading-snug">{p.nome}</p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {p.codice && <span className="text-xs font-mono dark:text-slate-500 text-slate-400">{p.codice}</span>}
+                      <span className="text-xs px-2 py-0.5 rounded-full dark:bg-white/5 bg-slate-100 dark:text-slate-400 text-slate-500">{p.categoria}</span>
+                      <span className="text-xs dark:text-slate-500 text-slate-400">{p.unita}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => setModal({ tipo: 'edit', prodotto: p })}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center dark:text-slate-400 text-slate-500 dark:bg-white/5 bg-slate-100 transition-colors">
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 bg-red-500/10 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quantità + prezzo */}
+                <div className="flex items-center justify-between">
+                  {/* Pulsanti ± quantità grandi */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => aggiornaQuantita(p.id, -1)}
+                      disabled={p.quantita === 0}
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold dark:text-slate-400 text-slate-500 dark:bg-white/5 bg-slate-100 disabled:opacity-30 transition-colors active:scale-95">
+                      −
+                    </button>
+                    <span className={`text-xl font-bold font-mono px-3 py-1.5 rounded-xl min-w-[52px] text-center ${QTA_COLOR(p.quantita)}`}>
+                      {p.quantita}
+                    </span>
+                    <button
+                      onClick={() => aggiornaQuantita(p.id, 1)}
+                      className="w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold dark:text-slate-400 text-slate-500 dark:bg-white/5 bg-slate-100 transition-colors active:scale-95">
+                      +
+                    </button>
+                  </div>
+                  {/* Prezzo vendita */}
+                  <div className="text-right">
+                    {p.prezzoAcquisto && <p className="text-xs dark:text-slate-500 text-slate-400">Acq. {fmt(p.prezzoAcquisto)}</p>}
+                    <p className="text-base font-mono font-semibold text-amber-400">{fmt(vendita)}</p>
+                    <p className="text-[10px] dark:text-slate-600 text-slate-400">prezzo vendita</p>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── Tabella desktop (hidden su mobile) ── */}
+        <div className="hidden md:block rounded-xl border dark:border-[#1e2d4a] border-slate-200 dark:bg-[#080f20] bg-white overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead>

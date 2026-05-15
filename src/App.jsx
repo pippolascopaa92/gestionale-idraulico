@@ -19,6 +19,7 @@ import Tecnici from './pages/Tecnici'
 import Login from './pages/Login'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { DataProvider } from './context/DataContext'
+import { ConfigProvider } from './context/ConfigContext'
 
 // ─── Theme Context ────────────────────────────────────────────────────────────
 
@@ -231,6 +232,7 @@ function AuthGate({ children }) {
 export default function App() {
   return (
     <ThemeProvider>
+      <ConfigProvider>
       <AuthProvider>
         <BrowserRouter>
           <AuthGate>
@@ -257,6 +259,7 @@ export default function App() {
           </AuthGate>
         </BrowserRouter>
       </AuthProvider>
+      </ConfigProvider>
     </ThemeProvider>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Plus, Search, X, Edit2, Trash2, Package, ChevronUp, ChevronDown, Tag, Check } from 'lucide-react'
 import { useData } from '../context/DataContext'
+import { useConfig } from '../context/ConfigContext'
 
 // ─── Categorie in localStorage ────────────────────────────────────────────────
 const CAT_KEY = 'hydrodesk_categorie'
@@ -281,10 +282,10 @@ const QTA_COLOR = (q) => {
 // ─── Pagina principale ────────────────────────────────────────────────────────
 export default function Magazzino() {
   const { magazzino: prodotti, saveProdotto: save, removeProdotto: remove, aggiornaQuantita } = useData()
-  const [search, setSearch]       = useState('')
+  const { categorie, saveCategorie } = useConfig()
+  const [search, setSearch]   = useState('')
   const [catFilter, setCatFilter] = useState('Tutti')
-  const [modal, setModal]         = useState(null) // null | 'new' | { tipo:'edit', prodotto } | 'categorie'
-  const [categorie, setCategorie] = useState(loadCategorie)
+  const [modal, setModal]     = useState(null) // null | 'new' | { tipo:'edit', prodotto } | 'categorie'
 
   // Unisce categorie salvate + quelle presenti nei prodotti (per retrocompatibilità)
   const categorieLista = useMemo(() => {
@@ -315,8 +316,7 @@ export default function Magazzino() {
   }
 
   const handleSaveCategorie = (nuove) => {
-    setCategorie(nuove)
-    persistCategorie(nuove)
+    saveCategorie(nuove)
   }
 
   const scorteBasseCount = prodotti.filter(p => p.quantita <= 3).length

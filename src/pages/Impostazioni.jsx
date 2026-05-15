@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth, ALL_PERMS, EMPTY_PERMS } from '../auth/AuthContext';
 import { useTheme } from '../App';
+import { useConfig } from '../context/ConfigContext';
 
 // ─── Storage company ──────────────────────────────────────────────────────────
 
@@ -586,6 +587,7 @@ function TabAccount() {
 // ─── Tab: Azienda ─────────────────────────────────────────────────────────────
 
 function TabAzienda() {
+  const { saveCompany } = useConfig();
   const [company, setCompany] = useState(() => readCompany());
   const [saved, setSaved]     = useState(false);
   const fileRef               = useRef();
@@ -695,6 +697,7 @@ function TabAzienda() {
 function TabAspetto() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { saveCompany } = useConfig();
   const canEdit = user?.role === 'superadmin' || user?.role === 'socio';
 
   const [company, setCompanyState] = useState(() => readCompany());

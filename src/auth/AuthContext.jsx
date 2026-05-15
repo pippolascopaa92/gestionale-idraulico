@@ -127,6 +127,38 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // Real-time su accounts: nuovi account, permessi modificati, account eliminati
+  useEffect(() => {
+    const ch = supabase
+      .channel('hydrodesk_accounts_rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' },
+        ({ eventType, new: n, old: o }) => {
+          if (eventType === 'INSERT') {
+            setAcc(prev => prev.some(a => a.id === n.id) ? prev : [...prev, n]);
+          } else if (eventType === 'UPDATE') {
+            setAcc(prev => prev.map(a => a.id === n.id ? n : a));
+            // Se è il mio account → aggiorna permessi in sessione senza logout
+            setUser(prev => {
+              if (!prev || prev.id !== n.id) return prev;
+              const newSession = buildSession(n);
+              writeSession(newSession, !!localStorage.getItem(KEY_SESSION_LS));
+              return newSession;
+            });
+          } else if (eventType === 'DELETE') {
+            setAcc(prev => prev.filter(a => a.id !== o.id));
+            // Se il mio account è stato eliminato → logout automatico
+            setUser(prev => {
+              if (!prev || prev.id !== o.id) return prev;
+              clearSession();
+              return null;
+            });
+          }
+        }
+      )
+      .subscribe();
+    return () => supabase.removeChannel(ch);
+  }, []);
+
   const persistAccounts = (list) => {
     saveAccounts(list);
     setAcc(list);

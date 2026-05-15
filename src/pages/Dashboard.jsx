@@ -6,6 +6,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../App";
 import { useData } from "../context/DataContext";
+import RapportinoModal from "../components/RapportinoModal";
 import {
   Wrench,
   Clock,
@@ -175,17 +176,17 @@ function StatoDot({ stato }) {
 }
 
 // ─── Row Intervento ───────────────────────────────────────────────────────────
-function InterventoRow({ r, onNavigate }) {
+function InterventoRow({ r, onOpen }) {
   const durata = calcolaDurata(r.oraInizio, r.oraFine);
   const nomeCliente = r.clienteNome || r.cliente || "—";
   const nomeTecnico = r.tecnicoNome || r.tecnico || "—";
   return (
     <div
-      className="group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all"
+      className="group flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all active:opacity-70"
       style={{ border: "1px solid transparent" }}
       onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(245,158,11,0.2)"}
       onMouseLeave={e => e.currentTarget.style.borderColor = "transparent"}
-      onClick={() => onNavigate && onNavigate(`/rapportini/${r.id}`)}
+      onClick={() => onOpen?.(r)}
     >
       {/* Tipo icon */}
       <div className="shrink-0">
@@ -352,6 +353,7 @@ function TecniciOggi({ rapportiniOggi }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("tutti");
+  const [viewRap, setViewRap] = useState(null);
   const { rapportini, clienti, tecnici } = useData();
 
   const oggi = new Date().toISOString().split("T")[0];
@@ -396,6 +398,15 @@ export default function Dashboard() {
   }, [filter, rapportini, rapportiniOggi, rapportiniSettimana, clienti, tecnici]);
 
   return (
+    <>
+    {viewRap && (
+      <RapportinoModal
+        rapportino={viewRap}
+        clienti={clienti}
+        tecnici={tecnici}
+        onClose={() => setViewRap(null)}
+      />
+    )}
     <div
       className="min-h-screen p-4 md:p-6 lg:p-8"
       style={{ background: "var(--bg-page)", fontFamily: "'DM Sans', sans-serif" }}
@@ -550,7 +561,7 @@ export default function Dashboard() {
               listaFiltrata.map(r => (
                 <div key={r.id} style={{ borderBottom: "1px solid var(--divide)" }}>
                   <div className="px-2">
-                    <InterventoRow r={r} />
+                    <InterventoRow r={r} onOpen={setViewRap} />
                   </div>
                 </div>
               ))
@@ -592,5 +603,6 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    </>
   );
 }

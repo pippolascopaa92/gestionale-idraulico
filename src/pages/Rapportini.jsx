@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useData } from '../context/DataContext';
-import {
-  Search, Trash2, Edit2, Calendar, User, MapPin, Wrench, AlertTriangle,
-  X, RotateCcw, ChevronDown, ChevronUp, Clock, Package, FileText,
-} from 'lucide-react';
+import { Search, Trash2, Edit2, Calendar, Wrench, AlertTriangle, X, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import RapportinoModal from '../components/RapportinoModal';
 
 const TRASH_KEY = 'hydrodesk:trash_rapportini';
 const readTrash  = () => { try { return JSON.parse(localStorage.getItem(TRASH_KEY) || '[]'); } catch { return []; } };
@@ -22,21 +20,12 @@ function statoInfo(val) {
   return STATI.find(s => s.value === val) || STATI[0];
 }
 
-function formatOrari(r) {
-  const parts = [];
-  if (r.mattinaInizio && r.mattinaFine) parts.push(`Mattina ${r.mattinaInizio}–${r.mattinaFine}`);
-  if (r.pomeriggioInizio && r.pomeriggioFine) parts.push(`Pomer. ${r.pomeriggioInizio}–${r.pomeriggioFine}`);
-  if (parts.length === 0 && r.oraInizio) parts.push(`${r.oraInizio}${r.oraFine ? '–' + r.oraFine : ''}`);
-  if (r.oreManodopera) parts.push(`${r.oreManodopera}h manodopera`);
-  return parts.join(' · ') || null;
-}
-
 // ─── Modal conferma eliminazione ─────────────────────────────────────────────
 function DeleteModal({ rapportino, onConfirm, onCancel }) {
   const tipoLabel = rapportino?.tipoIntervento
     ? rapportino.tipoIntervento.charAt(0).toUpperCase() + rapportino.tipoIntervento.slice(1)
     : 'Rapportino';
-  const dataLabel = rapportino?.data ? new Date(rapportino.data).toLocaleDateString('it-IT') : '';
+  const dataLabel = rapportino?.data ? new Date(rapportino.data + 'T00:00:00').toLocaleDateString('it-IT') : '';
   const nMat = rapportino?.materiali?.filter(m => m.magazzinoId)?.length || 0;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -59,182 +48,14 @@ function DeleteModal({ rapportino, onConfirm, onCancel }) {
           {dataLabel && <> del <span className="font-medium" style={{ color: 'var(--text-1)' }}>{dataLabel}</span></>}?
         </p>
         <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 px-4 py-2.5 rounded-xl text-sm transition-colors"
+          <button onClick={onCancel} className="flex-1 px-4 py-2.5 rounded-xl text-sm"
             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
             Annulla
           </button>
-          <button onClick={onConfirm} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          <button onClick={onConfirm} className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium"
             style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444' }}>
             Elimina
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Modal dettaglio rapportino ───────────────────────────────────────────────
-function DetailModal({ rapportino, clienti, tecnici, onClose, onEdit, onDelete, canDelete }) {
-  const cliente = clienti.find(c => c.id === rapportino.clienteId);
-  const nomeCliente = rapportino.clienteNome || cliente?.nome || '—';
-  const tecnico = tecnici.find(t => t.id === rapportino.tecnicoId);
-  const nomeTecnico = rapportino.tecnicoNome || tecnico?.nome || null;
-  const stato = statoInfo(rapportino.stato);
-  const orari = formatOrari(rapportino);
-
-  const materiali = rapportino.materiali || [];
-  const totMateriali = materiali.reduce((s, m) => s + (parseFloat(m.quantita) || 0) * (parseFloat(m.prezzoVendita) || 0), 0);
-  const totManodopera = (parseFloat(rapportino.oreManodopera) || 0) * (parseFloat(rapportino.costoOrario) || 0);
-  const totTotale = totMateriali + totManodopera;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" onClick={onClose}>
-      <div className="min-h-full flex items-end sm:items-center justify-center sm:p-4">
-        <div
-          className="relative w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--divide)' }}
-          onClick={e => e.stopPropagation()}
-        >
-          {/* Handle drag bar su mobile */}
-          <div className="flex justify-center pt-3 pb-1 sm:hidden">
-            <div className="w-10 h-1 rounded-full" style={{ background: 'var(--divide)' }} />
-          </div>
-
-          {/* Header */}
-          <div className="flex items-start justify-between px-5 pt-3 pb-4 border-b" style={{ borderColor: 'var(--divide)' }}>
-            <div className="flex-1 min-w-0 pr-3">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                {rapportino.tipoIntervento && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                        style={{ background: '#f59e0b22', color: '#f59e0b' }}>
-                    {rapportino.tipoIntervento.charAt(0).toUpperCase() + rapportino.tipoIntervento.slice(1)}
-                  </span>
-                )}
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: stato.bg, color: stato.color }}>
-                  {stato.label}
-                </span>
-              </div>
-              <p className="font-bold text-lg leading-tight" style={{ color: 'var(--text-1)' }}>{nomeCliente}</p>
-              <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-4)' }}>
-                #{rapportino.id?.slice(0, 8).toUpperCase()}
-              </p>
-            </div>
-            <button onClick={onClose}
-              className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 transition-colors"
-              style={{ background: 'var(--bg-page)', color: 'var(--text-4)' }}>
-              <X size={17} />
-            </button>
-          </div>
-
-          {/* Body scrollabile */}
-          <div className="overflow-y-auto px-5 py-4 space-y-4" style={{ maxHeight: '55vh' }}>
-
-            {/* Info principali */}
-            <div className="space-y-2.5">
-              {rapportino.data && (
-                <div className="flex items-start gap-3">
-                  <Calendar size={15} className="shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
-                  <span className="text-sm" style={{ color: 'var(--text-2)' }}>
-                    {new Date(rapportino.data + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                </div>
-              )}
-              {orari && (
-                <div className="flex items-start gap-3">
-                  <Clock size={15} className="shrink-0 mt-0.5" style={{ color: 'var(--text-4)' }} />
-                  <span className="text-sm" style={{ color: 'var(--text-2)' }}>{orari}</span>
-                </div>
-              )}
-              {rapportino.indirizzoIntervento && (
-                <div className="flex items-start gap-3">
-                  <MapPin size={15} className="shrink-0 mt-0.5" style={{ color: 'var(--text-4)' }} />
-                  <span className="text-sm" style={{ color: 'var(--text-2)' }}>{rapportino.indirizzoIntervento}</span>
-                </div>
-              )}
-              {nomeTecnico && (
-                <div className="flex items-start gap-3">
-                  <User size={15} className="shrink-0 mt-0.5" style={{ color: 'var(--text-4)' }} />
-                  <span className="text-sm" style={{ color: 'var(--text-2)' }}>{nomeTecnico}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Descrizione */}
-            {rapportino.descrizione && (
-              <div className="rounded-xl p-3.5" style={{ background: 'var(--bg-page)', border: '1px solid var(--divide)' }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText size={13} style={{ color: 'var(--text-4)' }} />
-                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>
-                    Descrizione
-                  </p>
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>{rapportino.descrizione}</p>
-              </div>
-            )}
-
-            {/* Materiali */}
-            {materiali.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Package size={13} style={{ color: 'var(--text-4)' }} />
-                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-4)' }}>
-                    Materiali ({materiali.length})
-                  </p>
-                </div>
-                <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--divide)' }}>
-                  {materiali.map((m, i) => {
-                    const tot = (parseFloat(m.quantita) || 0) * (parseFloat(m.prezzoVendita) || 0);
-                    return (
-                      <div key={i}
-                        className="flex items-center justify-between px-3.5 py-2.5"
-                        style={{ borderBottom: i < materiali.length - 1 ? '1px solid var(--divide)' : 'none', background: 'var(--bg-page)' }}>
-                        <span className="text-sm" style={{ color: 'var(--text-2)' }}>{m.nome || '—'}</span>
-                        <span className="text-xs font-mono shrink-0 ml-3" style={{ color: 'var(--text-4)' }}>
-                          {m.quantita} {m.unita}{tot > 0 ? ` · ${tot.toFixed(2)} €` : ''}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {totTotale > 0 && (
-                  <div className="flex justify-between items-center mt-2 px-1">
-                    <span className="text-sm font-semibold" style={{ color: 'var(--text-3)' }}>Totale intervento</span>
-                    <span className="text-base font-mono font-bold" style={{ color: '#f59e0b' }}>
-                      {totTotale.toFixed(2)} €
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Anomalie */}
-            {rapportino.anomalie && (
-              <div className="rounded-xl p-3.5" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.15)' }}>
-                <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: '#ef4444' }}>
-                  Anomalie / Note
-                </p>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>{rapportino.anomalie}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer azioni */}
-          <div className="flex items-center gap-2 px-5 py-4 border-t" style={{ borderColor: 'var(--divide)' }}>
-            {canDelete && (
-              <button onClick={onDelete}
-                className="flex items-center justify-center w-12 h-12 rounded-xl shrink-0 transition-colors"
-                style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)' }}>
-                <Trash2 size={18} />
-              </button>
-            )}
-            <button onClick={onEdit}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-colors"
-              style={{ background: '#f59e0b', color: '#060d1f' }}>
-              <Edit2 size={16} />
-              Modifica rapportino
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -257,8 +78,9 @@ export default function Rapportini() {
   const eliminaConRipristino = async (id) => {
     const rap = rapportini.find(r => r.id === id);
     if (rap) {
-      saveTrash([{ ...rap, deletedAt: new Date().toISOString() }, ...trash]);
-      setTrash(readTrash());
+      const next = [{ ...rap, deletedAt: new Date().toISOString() }, ...trash];
+      saveTrash(next);
+      setTrash(next);
     }
     if (rap?.materiali?.length > 0) await ripristinaMagazzino(rap.materiali);
     await deleteRapportino(id);
@@ -276,11 +98,6 @@ export default function Rapportini() {
     const next = trash.filter(r => r.id !== id);
     saveTrash(next);
     setTrash(next);
-  };
-
-  const handleDeleteRequest = (rap) => {
-    setViewRap(null);
-    setToDelete(rap);
   };
 
   const filteredRapportini = rapportini.filter(r => {
@@ -308,14 +125,13 @@ export default function Rapportini() {
 
       {/* Modal dettaglio */}
       {viewRap && (
-        <DetailModal
+        <RapportinoModal
           rapportino={viewRap}
           clienti={clienti}
           tecnici={tecnici}
           onClose={() => setViewRap(null)}
-          onEdit={() => { setViewRap(null); navigate(`/rapportino/${viewRap.id}`); }}
-          onDelete={() => handleDeleteRequest(viewRap)}
           canDelete={hasPermission('rapportini.elimina')}
+          onDelete={() => { setViewRap(null); setToDelete(viewRap); }}
         />
       )}
 
@@ -329,7 +145,7 @@ export default function Rapportini() {
             {hasPermission('rapportini.crea') && (
               <button
                 onClick={() => navigate('/rapportino/nuovo')}
-                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
                 style={{ background: 'var(--bg-elevated)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
               >
                 <Wrench size={16} /> Nuovo Rapportino
@@ -386,7 +202,6 @@ export default function Rapportini() {
                      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--divide)' }}
                      onClick={() => setViewRap(rapportino)}>
                   <div className="flex items-start justify-between gap-3">
-                    {/* Icona + info */}
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="flex items-center justify-center w-11 h-11 rounded-xl shrink-0"
                            style={{ background: '#f59e0b22', border: '1.5px solid #f59e0b44' }}>
@@ -417,10 +232,10 @@ export default function Rapportini() {
                         </div>
                       </div>
                     </div>
-                    {/* Bottone modifica rapido */}
+                    {/* Shortcut modifica diretto */}
                     <button
                       onClick={e => { e.stopPropagation(); navigate(`/rapportino/${rapportino.id}`); }}
-                      className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-colors"
+                      className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0"
                       style={{ color: 'var(--text-2)', background: 'var(--bg-page)' }}
                       title="Modifica"
                     >
@@ -438,7 +253,7 @@ export default function Rapportini() {
       <div className="px-4 sm:px-6 pb-8 mt-4">
         <button
           onClick={() => setShowTrash(v => !v)}
-          className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors w-full"
+          className="flex items-center gap-2 text-sm font-medium px-4 py-2.5 rounded-xl w-full"
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
         >
           <Trash2 size={15} />
@@ -468,13 +283,13 @@ export default function Rapportini() {
                         {' · '}Eliminato il {new Date(rap.deletedAt).toLocaleDateString('it-IT')}
                       </p>
                     </div>
-                    <button onClick={() => ripristinaRapportino(rap)} title="Ripristina"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    <button onClick={() => ripristinaRapportino(rap)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                       style={{ background: '#10b98120', color: '#10b981', border: '1px solid #10b98130' }}>
                       <RotateCcw size={13} /> Ripristina
                     </button>
-                    <button onClick={() => eliminaDefinitivo(rap.id)} title="Elimina definitivamente"
-                      className="p-1.5 rounded-lg transition-colors" style={{ color: '#ef4444' }}>
+                    <button onClick={() => eliminaDefinitivo(rap.id)}
+                      className="p-1.5 rounded-lg" style={{ color: '#ef4444' }}>
                       <X size={15} />
                     </button>
                   </div>

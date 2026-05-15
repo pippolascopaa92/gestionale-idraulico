@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Settings, User, Building2, Palette, Plus, Edit2, Trash2,
   Shield, UserCheck, HardHat, Eye, EyeOff, Check, X,
@@ -587,10 +587,15 @@ function TabAccount() {
 // ─── Tab: Azienda ─────────────────────────────────────────────────────────────
 
 function TabAzienda() {
-  const { saveCompany } = useConfig();
+  const { company: companySync, saveCompany } = useConfig();
   const [company, setCompany] = useState(() => readCompany());
   const [saved, setSaved]     = useState(false);
   const fileRef               = useRef();
+
+  // Aggiorna il form se Supabase carica dati più recenti di localStorage
+  useEffect(() => {
+    if (companySync && Object.keys(companySync).length > 0) setCompany(companySync);
+  }, [companySync]);
 
   const set = (k, v) => setCompany(c => ({ ...c, [k]: v }));
 
@@ -697,11 +702,15 @@ function TabAzienda() {
 function TabAspetto() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { saveCompany } = useConfig();
+  const { company: companySync, saveCompany } = useConfig();
   const canEdit = user?.role === 'superadmin' || user?.role === 'socio';
 
   const [company, setCompanyState] = useState(() => readCompany());
   const [saved, setSaved]          = useState(false);
+
+  useEffect(() => {
+    if (companySync && Object.keys(companySync).length > 0) setCompanyState(companySync);
+  }, [companySync]);
 
   const handleSaveAppName = () => {
     saveCompany(company);

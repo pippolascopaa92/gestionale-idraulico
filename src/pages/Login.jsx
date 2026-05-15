@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Droplets, Eye, EyeOff, LogIn, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
-
-function readCompany() {
-  try { return JSON.parse(localStorage.getItem('hydrodesk_company')) || {}; } catch { return {}; }
-}
+import { useConfig } from '../context/ConfigContext';
 
 export default function Login() {
   const { login } = useAuth();
+  const { company } = useConfig();
   const [username, setUsername]   = useState('');
   const [password, setPassword]   = useState('');
   const [remember, setRemember]   = useState(false);
@@ -15,9 +13,6 @@ export default function Login() {
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
   const [trialExpired, setTrialExpired] = useState(false);
-  const [company, setCompany]     = useState({});
-
-  useEffect(() => { setCompany(readCompany()); }, []);
 
   const appName = company.nomeApp || 'HydroDesk';
 

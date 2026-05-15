@@ -78,7 +78,7 @@ export default function Topbar({ onMenuClick }) {
       <div className="flex items-center gap-2 text-sm">
         <button
           onClick={onMenuClick}
-          className={`md:hidden p-1.5 rounded-lg transition-colors
+          className={`hidden p-1.5 rounded-lg transition-colors
             ${isDark
               ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
               : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { X, Clock } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
+import MobileNav from './components/MobileNav'
 import Dashboard from './pages/Dashboard'
 import NuovoRapportino from './pages/NuovoRapportino'
 import Clienti from "./pages/Clienti"
@@ -191,11 +192,16 @@ function AppShell({ children }) {
 
         <main className={`flex-1 overflow-y-auto transition-colors duration-300
           ${theme === 'dark' ? 'bg-[#060d1f]' : 'bg-zinc-50'}`}>
-          <div className="page-enter p-4 md:p-6 min-h-full">
+          <div className="page-enter p-4 md:p-6 min-h-full pb-24 md:pb-6">
             {children}
           </div>
         </main>
       </div>
+
+      <MobileNav
+        onMenuClick={() => setMobileSidebarOpen(true)}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
 
       {mobileSidebarOpen && (
         <div
